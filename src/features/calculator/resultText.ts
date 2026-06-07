@@ -15,6 +15,7 @@ Tipo: ${result.side}
 
 Distancia al stop: ${formatNumber(result.distance)}
 Size recomendado: ${formatNumber(result.sizeUnits)} ${result.baseAsset}
+Break even con fees: ${formatNumber(result.breakEvenPrice)}
 Notional entrada: ${formatCurrency(result.notionalEntry)}
 ${marginLine}
 Fees estimadas

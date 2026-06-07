@@ -29,6 +29,17 @@ select {
   font: inherit;
 }
 
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 @layer components {
   .label {
     @apply mb-2 block text-xs font-bold uppercase text-slate-600 dark:text-slate-300;

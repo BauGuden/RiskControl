@@ -3,6 +3,7 @@ import { BROKER_OPTIONS, getBrokerLabel, getPresetNote } from "../../data/fees";
 import type { CalculatorFormState } from "../../features/calculator/formState";
 import { TextInput } from "../ui/TextInput";
 import type { Broker, Market, OrderRole, ValidationError } from "../../types";
+import { SymbolPairInput } from "./SymbolPairInput";
 
 type CalculatorFormProps = {
   form: CalculatorFormState;
@@ -40,13 +41,9 @@ export function CalculatorForm({ form, errors, onUpdate, onCalculate, onClear }:
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <TextInput
+          <SymbolPairInput
             errors={errors}
-            help="Solo etiqueta el resultado; no consulta precios."
-            id="symbol"
-            label="Par / símbolo"
             onChange={(value) => onUpdate("symbol", value.toUpperCase())}
-            placeholder="BTCUSDT"
             value={form.symbol}
           />
 
@@ -74,7 +71,7 @@ export function CalculatorForm({ form, errors, onUpdate, onCalculate, onClear }:
             id="entry"
             label="Precio de entrada"
             onChange={(value) => onUpdate("entry", value)}
-            placeholder="100.00"
+            placeholder="60000.00"
             type="number"
             value={form.entry}
           />
@@ -84,7 +81,7 @@ export function CalculatorForm({ form, errors, onUpdate, onCalculate, onClear }:
             id="stop"
             label="Stop loss"
             onChange={(value) => onUpdate("stop", value)}
-            placeholder="96.00"
+            placeholder="58000.00"
             type="number"
             value={form.stop}
           />

@@ -20,6 +20,12 @@ export function getTargetPrice(entry: number, distance: number, rr: number, side
   return side === "Long" ? entry + distance * rr : entry - distance * rr;
 }
 
+export function getBreakEvenPrice(entry: number, feeInRate: number, feeOutRate: number, side: Side): number {
+  return side === "Long"
+    ? (entry * (1 + feeInRate)) / (1 - feeOutRate)
+    : (entry * (1 - feeInRate)) / (1 + feeOutRate);
+}
+
 export function validateInput(input: CalculatorInput): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -74,6 +80,7 @@ export function calculateRisk(input: CalculatorInput): CalculatorResult {
   const sizeUnits = input.risk / denominator;
   const notionalEntry = sizeUnits * input.entry;
   const notionalStop = sizeUnits * input.stop;
+  const breakEvenPrice = getBreakEvenPrice(input.entry, feeInRate, feeOutRate, side);
   const feeOpen = notionalEntry * feeInRate;
   const feeCloseAtStop = notionalStop * feeOutRate;
   const feesTotalAtStop = feeOpen + feeCloseAtStop;
@@ -108,6 +115,7 @@ export function calculateRisk(input: CalculatorInput): CalculatorResult {
     notionalStop,
     marginRequired:
       input.market === "futures" && input.leverage ? notionalEntry / input.leverage : undefined,
+    breakEvenPrice,
     feeOpen,
     feeCloseAtStop,
     feesTotalAtStop,

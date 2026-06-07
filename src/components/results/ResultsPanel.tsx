@@ -11,6 +11,10 @@ type ResultsPanelProps = {
 };
 
 export function ResultsPanel({ result, copyLabel, onCopy }: ResultsPanelProps) {
+  const sideTone = result?.side === "Short" ? "danger" : "accent";
+  const sideTextClass =
+    result?.side === "Short" ? "text-red-700 dark:text-red-300" : "text-teal-700 dark:text-teal-300";
+
   return (
     <section className="panel min-w-0 p-5 sm:p-6" aria-live="polite">
       <div className="mb-5 flex items-start justify-between gap-4">
@@ -29,8 +33,9 @@ export function ResultsPanel({ result, copyLabel, onCopy }: ResultsPanelProps) {
       ) : (
         <div className="space-y-5">
           <div className="grid gap-x-6 border-y border-slate-200 sm:grid-cols-2 dark:border-slate-800">
-            <Metric label="Tipo" value={result.side} tone="accent" />
-            <Metric label="Size" value={`${formatNumber(result.sizeUnits)} ${result.baseAsset}`} tone="accent" />
+            <Metric label="Tipo" value={result.side} tone={sideTone} />
+            <Metric label="Size" value={`${formatNumber(result.sizeUnits)} ${result.baseAsset}`} tone={sideTone} />
+            <Metric label="Break even" value={formatNumber(result.breakEvenPrice)} tone={sideTone} />
             <Metric label="Notional entrada" value={formatCurrency(result.notionalEntry)} />
             {result.market === "futures" ? (
               <Metric label="Margen estimado" value={formatCurrency(result.marginRequired ?? 0)} />
@@ -44,12 +49,12 @@ export function ResultsPanel({ result, copyLabel, onCopy }: ResultsPanelProps) {
           <div className="grid gap-3 text-sm sm:grid-cols-3">
             <FeeCard label="Fee entrada" value={formatCurrency(result.feeOpen)} />
             <FeeCard label="Fee stop" value={formatCurrency(result.feeCloseAtStop)} />
-            <FeeCard label="Fees stop" value={formatCurrency(result.feesTotalAtStop)} />
+            <FeeCard label="Total fee" value={formatCurrency(result.feesTotalAtStop)} />
           </div>
 
           <div>
             <div className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-slate-100">
-              <Info className="h-4 w-4 text-teal-700 dark:text-teal-300" aria-hidden="true" />
+              <Info className={`h-4 w-4 ${sideTextClass}`} aria-hidden="true" />
               Objetivos RR
             </div>
             <div className="overflow-hidden border border-slate-200 dark:border-slate-800">
@@ -64,7 +69,7 @@ export function ResultsPanel({ result, copyLabel, onCopy }: ResultsPanelProps) {
                   className="grid grid-cols-[58px_1fr_1fr] border-t border-slate-200 px-3 py-3 text-sm dark:border-slate-800 sm:grid-cols-[70px_1fr_1fr_1fr]"
                   key={target.rr}
                 >
-                  <span className="font-bold text-teal-700 dark:text-teal-300">1:{target.rr}</span>
+                  <span className={`font-bold ${sideTextClass}`}>1:{target.rr}</span>
                   <span>{formatNumber(target.price)}</span>
                   <span className="hidden sm:block">{formatCurrency(target.profitGross)}</span>
                   <span className="font-semibold">{formatCurrency(target.profitNet)}</span>

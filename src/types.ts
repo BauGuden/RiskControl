@@ -50,6 +50,7 @@ export type CalculatorResult = {
   notionalEntry: number;
   notionalStop: number;
   marginRequired?: number;
+  breakEvenPrice: number;
   feeOpen: number;
   feeCloseAtStop: number;
   feesTotalAtStop: number;
