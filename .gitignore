@@ -3,3 +3,12 @@ dist/
 *.tsbuildinfo
 vite.config.js
 vite.config.d.ts
+.env
+.env.*
+!.env.example
+
+# Local Netlify folder
+.netlify/
+netlify/functions/*.zip
+netlify/functions/manifest.json
+deno.lock

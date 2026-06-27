@@ -5,7 +5,7 @@ export function PageHeader() {
     <section className="panel min-w-0 p-5 sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase text-teal-700 dark:text-teal-300">Calculadora operativa</p>
+          <p className="text-xs font-semibold uppercase text-teal-700 dark:text-teal-300">Calculadora operativa dgbautista</p>
           <h2 className="mt-1 max-w-full break-words text-2xl font-extrabold sm:text-3xl">
             Size, fees y objetivos por riesgo
           </h2>

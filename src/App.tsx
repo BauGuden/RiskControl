@@ -1,4 +1,5 @@
 import { CalculatorForm } from "./components/calculator/CalculatorForm";
+import { TradeChat } from "./components/chat/TradeChat";
 import { PageHeader } from "./components/layout/PageHeader";
 import { Sidebar } from "./components/layout/Sidebar";
 import { ResultsPanel } from "./components/results/ResultsPanel";
@@ -7,7 +8,18 @@ import { useThemeMode } from "./features/theme/useThemeMode";
 
 export default function App() {
   const { themeMode, setThemeMode } = useThemeMode();
-  const { form, errors, result, copyLabel, updateForm, calculate, clear, copyResult } = useRiskCalculator();
+  const {
+    form,
+    errors,
+    result,
+    copyLabel,
+    shareLabel,
+    updateForm,
+    calculate,
+    clear,
+    copyResult,
+    shareResult
+  } = useRiskCalculator();
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-100 text-slate-950 transition-colors dark:bg-slate-950 dark:text-slate-100">
@@ -25,8 +37,16 @@ export default function App() {
               onClear={clear}
               onUpdate={updateForm}
             />
-            <ResultsPanel copyLabel={copyLabel} onCopy={copyResult} result={result} />
+            <ResultsPanel
+              copyLabel={copyLabel}
+              onCopy={copyResult}
+              onShare={shareResult}
+              result={result}
+              shareLabel={shareLabel}
+            />
           </div>
+
+          <TradeChat form={form} />
 
           <footer className="muted-soft pb-4 text-center text-xs">
             Trading conlleva riesgos. Esta herramienta estima fees en USDT para comparar escenarios.

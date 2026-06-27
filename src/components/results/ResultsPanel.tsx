@@ -1,4 +1,4 @@
-import { Copy, Info } from "lucide-react";
+import { Copy, Info, Share2 } from "lucide-react";
 import { formatCurrency, formatNumber } from "../../lib/format";
 import type { CalculatorResult } from "../../types";
 import { EmptyState } from "./EmptyState";
@@ -7,25 +7,39 @@ import { Metric } from "./Metric";
 type ResultsPanelProps = {
   result: CalculatorResult | null;
   copyLabel: string;
+  shareLabel: string;
   onCopy: () => void;
+  onShare: () => void;
 };
 
-export function ResultsPanel({ result, copyLabel, onCopy }: ResultsPanelProps) {
+export function ResultsPanel({ result, copyLabel, shareLabel, onCopy, onShare }: ResultsPanelProps) {
   const sideTone = result?.side === "Short" ? "danger" : "accent";
   const sideTextClass =
     result?.side === "Short" ? "text-red-700 dark:text-red-300" : "text-teal-700 dark:text-teal-300";
 
   return (
-    <section className="panel min-w-0 p-5 sm:p-6" aria-live="polite">
+    <section className="panel min-w-0 scroll-mt-5 p-5 sm:p-6" id="results" aria-live="polite">
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase text-teal-700 dark:text-teal-300">Resultados</p>
           <h2 className="mt-1 text-xl font-extrabold">Resumen de operación</h2>
         </div>
-        <button className="icon-btn" disabled={!result} onClick={onCopy} title="Copiar resultado" type="button">
-          <Copy className="h-4 w-4" aria-hidden="true" />
-          <span>{copyLabel}</span>
-        </button>
+        <div className="flex flex-wrap justify-end gap-2">
+          <button className="icon-btn" disabled={!result} onClick={onCopy} title="Copiar resultado" type="button">
+            <Copy className="h-4 w-4" aria-hidden="true" />
+            <span>{copyLabel}</span>
+          </button>
+          <button
+            className="icon-btn"
+            disabled={!result}
+            onClick={onShare}
+            title="Compartir resultado"
+            type="button"
+          >
+            <Share2 className="h-4 w-4" aria-hidden="true" />
+            <span>{shareLabel}</span>
+          </button>
+        </div>
       </div>
 
       {!result ? (
@@ -77,6 +91,10 @@ export function ResultsPanel({ result, copyLabel, onCopy }: ResultsPanelProps) {
               ))}
             </div>
           </div>
+
+          <p className="muted-soft border-t border-slate-200 pt-3 text-center text-[10px] font-semibold uppercase tracking-[0.2em] dark:border-slate-800">
+            Made by DGBAUTISTA
+          </p>
         </div>
       )}
     </section>

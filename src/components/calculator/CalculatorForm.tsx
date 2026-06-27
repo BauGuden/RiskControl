@@ -22,7 +22,7 @@ export function CalculatorForm({ form, errors, onUpdate, onCalculate, onClear }:
   }
 
   return (
-    <section className="panel min-w-0 p-5 sm:p-6">
+    <section className="panel min-w-0 scroll-mt-5 p-5 sm:p-6" id="calculator">
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
           <label className="label">Mercado</label>

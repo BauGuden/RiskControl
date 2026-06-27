@@ -10,6 +10,7 @@ export function useRiskCalculator() {
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [result, setResult] = useState<CalculatorResult | null>(null);
   const [copyLabel, setCopyLabel] = useState("Copiar");
+  const [shareLabel, setShareLabel] = useState("Compartir");
 
   useEffect(() => {
     setForm((current) => ({
@@ -47,7 +48,7 @@ export function useRiskCalculator() {
     if (!result) return;
 
     try {
-      await navigator.clipboard.writeText(resultToText(result, form.feeInPct, form.feeOutPct));
+      await navigator.clipboard.writeText(resultToText(result, form.feeInPct, form.feeOutPct, form.leverage));
       setCopyLabel("Copiado");
     } catch {
       setCopyLabel("No se pudo");
@@ -56,14 +57,40 @@ export function useRiskCalculator() {
     }
   }
 
+  async function shareResult() {
+    if (!result) return;
+
+    const text = resultToText(result, form.feeInPct, form.feeOutPct, form.leverage);
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Risk Control · ${result.symbol}`,
+          text
+        });
+        setShareLabel("Compartido");
+      } else {
+        await navigator.clipboard.writeText(text);
+        setShareLabel("Copiado");
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShareLabel("No se pudo");
+    } finally {
+      window.setTimeout(() => setShareLabel("Compartir"), 1000);
+    }
+  }
+
   return {
     form,
     errors,
     result,
     copyLabel,
+    shareLabel,
     updateForm,
     calculate,
     clear,
-    copyResult
+    copyResult,
+    shareResult
   };
 }

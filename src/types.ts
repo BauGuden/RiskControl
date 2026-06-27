@@ -44,6 +44,10 @@ export type CalculatorResult = {
   market: Market;
   broker: Broker;
   side: Side;
+  entryPrice: number;
+  stopPrice: number;
+  riskBudget: number;
+  includeFeesInRisk: boolean;
   distance: number;
   sizeUnits: number;
   baseAsset: string;
