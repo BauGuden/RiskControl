@@ -43,7 +43,7 @@ export function ResultsPanel({
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center p-2 sm:items-center sm:p-6">
       <button
         aria-label="Cerrar resultados"
         className="absolute inset-0 bg-slate-950/65 backdrop-blur-sm"
@@ -54,42 +54,42 @@ export function ResultsPanel({
       <section
         aria-labelledby="results-title"
         aria-modal="true"
-        className="panel relative z-10 flex max-h-[calc(100vh-1.5rem)] w-full max-w-3xl flex-col overflow-hidden shadow-2xl sm:max-h-[calc(100vh-3rem)]"
+        className="panel relative z-10 flex max-h-[calc(100dvh-1rem)] min-h-0 w-full max-w-3xl flex-col overflow-hidden shadow-2xl focus:outline-none sm:max-h-[calc(100dvh-3rem)]"
         id="results"
         ref={dialogRef}
         role="dialog"
         tabIndex={-1}
       >
-        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-100 bg-white px-5 py-4 dark:border-slate-800 dark:bg-slate-900 sm:px-6">
+        <div className="flex shrink-0 flex-col items-stretch gap-3 border-b border-slate-100 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-700 dark:text-teal-300">
               Resultado calculado
             </p>
-            <h2 className="mt-1 truncate text-lg font-extrabold tracking-tight" id="results-title">
+            <h2 className="mt-1 break-words text-lg font-extrabold leading-6 tracking-tight" id="results-title">
               {result.symbol} · Resumen de operación
             </h2>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto">
             <button
               aria-label={copyLabel}
-              className="icon-btn"
+              className="icon-btn flex-1 sm:flex-none"
               onClick={onCopy}
               title="Copiar resultado"
               type="button"
             >
               <Copy className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{copyLabel}</span>
+              <span>{copyLabel}</span>
             </button>
             <button
               aria-label={shareLabel}
-              className="icon-btn"
+              className="icon-btn flex-1 sm:flex-none"
               onClick={onShare}
               title="Compartir resultado"
               type="button"
             >
               <Share2 className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{shareLabel}</span>
+              <span>{shareLabel}</span>
             </button>
             <button
               aria-label="Cerrar resultados"
@@ -102,7 +102,7 @@ export function ResultsPanel({
           </div>
         </div>
 
-        <div className="scrollbar-none overflow-y-auto p-5 sm:p-6">
+        <div className="scrollbar-none min-h-0 touch-pan-y overscroll-contain overflow-y-auto px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-5 [-webkit-overflow-scrolling:touch] sm:p-6">
           <div className="space-y-5">
             <div className="grid gap-x-6 rounded-2xl bg-slate-50 px-4 sm:grid-cols-2 dark:bg-slate-950/60">
               <Metric label="Tipo" value={result.side} tone={sideTone} />
