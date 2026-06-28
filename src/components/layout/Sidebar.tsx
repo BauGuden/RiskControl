@@ -1,8 +1,8 @@
 import {
-  BarChart3,
   Bot,
   Calculator,
   Check,
+  Code2,
   Menu,
   ShieldCheck,
   X
@@ -19,7 +19,6 @@ type SidebarProps = {
 
 const navigation = [
   { href: "#calculator", label: "Calculadora", description: "Configura la operación", icon: Calculator },
-  { href: "#results", label: "Resultados", description: "Size, fees y objetivos", icon: BarChart3 },
   { href: "#assistant", label: "Asistente", description: "Calcula desde el chat", icon: Bot }
 ];
 
@@ -31,8 +30,8 @@ type SidebarContentProps = SidebarProps & {
 
 function Brand() {
   return (
-    <div className="flex min-w-0 items-center gap-3">
-      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700">
+    <div className="flex min-w-0 flex-col items-center text-center">
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700">
         <img
           alt=""
           className="absolute -top-3 left-1/2 h-[115px] w-[115px] max-w-none -translate-x-1/2 object-contain"
@@ -41,7 +40,7 @@ function Brand() {
           width="115"
         />
       </div>
-      <div className="min-w-0">
+      <div className="mt-2.5 min-w-0">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-teal-700 dark:text-teal-300">
           DGBM
         </p>
@@ -61,12 +60,12 @@ function SidebarContent({
 }: SidebarContentProps) {
   return (
     <div className="flex min-h-full flex-col">
-      <div className="flex items-center justify-between gap-4">
+      <div className="relative flex items-start justify-center">
         <Brand />
         {onClose ? (
           <button
             aria-label="Cerrar menú"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-slate-200 text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-teal-700/15 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+            className="absolute right-0 top-0 grid h-10 w-10 place-items-center rounded-lg border border-slate-200 text-slate-600 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950 focus:outline-none focus:ring-4 focus:ring-teal-700/15 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
             onClick={onClose}
             type="button"
           >
@@ -142,9 +141,20 @@ function SidebarContent({
         </ul>
       </div>
 
-      <p className="mt-auto border-t border-slate-200 pt-4 text-[10px] leading-4 text-slate-500 dark:border-slate-800 dark:text-slate-400">
-        Fees VIP 0 verificados el {FEE_VERIFIED_AT}. Confirma siempre el fee real de tu cuenta.
-      </p>
+      <div className="mt-auto border-t border-slate-200 pt-4 dark:border-slate-800">
+        <div className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-slate-100 text-teal-700 dark:bg-slate-800 dark:text-teal-300">
+            <Code2 className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400">Creado por</p>
+            <p className="text-xs font-extrabold tracking-wide text-slate-800 dark:text-slate-100">DGBAUTISTA</p>
+          </div>
+        </div>
+        <p className="mt-3 text-[10px] leading-4 text-slate-500 dark:text-slate-400">
+          Fees VIP 0 verificados el {FEE_VERIFIED_AT}. Confirma siempre el fee real de tu cuenta.
+        </p>
+      </div>
     </div>
   );
 }
@@ -193,20 +203,17 @@ export function Sidebar({ themeMode, onThemeChange }: SidebarProps) {
 
   return (
     <>
-      <header className="panel sticky top-3 z-30 flex min-w-0 items-center justify-between gap-4 rounded-2xl p-3 lg:hidden">
-        <Brand />
-        <button
-          aria-controls="mobile-sidebar"
-          aria-expanded={isOpen}
-          aria-label="Abrir menú"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-slate-950 text-white shadow-sm transition hover:bg-teal-700 focus:outline-none focus:ring-4 focus:ring-teal-700/20 dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
-          onClick={() => setIsOpen(true)}
-          ref={menuButtonRef}
-          type="button"
-        >
-          <Menu className="h-5 w-5" aria-hidden="true" />
-        </button>
-      </header>
+      <button
+        aria-controls="mobile-sidebar"
+        aria-expanded={isOpen}
+        aria-label="Abrir menú"
+        className="fixed right-4 top-4 z-30 grid h-12 w-12 place-items-center rounded-full border border-white/15 bg-slate-950 text-white shadow-lg transition hover:bg-teal-700 focus:outline-none focus:ring-4 focus:ring-teal-700/20 lg:hidden dark:bg-teal-400 dark:text-slate-950 dark:hover:bg-teal-300"
+        onClick={() => setIsOpen(true)}
+        ref={menuButtonRef}
+        type="button"
+      >
+        <Menu className="h-5 w-5" aria-hidden="true" />
+      </button>
 
       <button
         aria-hidden={!isOpen}
@@ -236,7 +243,7 @@ export function Sidebar({ themeMode, onThemeChange }: SidebarProps) {
         />
       </aside>
 
-      <aside className="panel scrollbar-none hidden self-start p-4 lg:sticky lg:top-5 lg:flex lg:h-[calc(100vh-2.5rem)] lg:flex-col lg:overflow-y-auto min-[1700px]:row-span-3 min-[1700px]:row-start-1">
+      <aside className="panel scrollbar-none hidden self-start p-4 lg:sticky lg:top-5 lg:flex lg:h-[calc(100vh-2.5rem)] lg:flex-col lg:overflow-y-auto">
         <SidebarContent
           activeSection={activeSection}
           onNavigate={navigateTo}

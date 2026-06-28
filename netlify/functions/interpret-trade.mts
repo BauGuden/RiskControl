@@ -1,3 +1,5 @@
+import { findTradingSymbolInText, normalizeTradingSymbol } from "../../src/data/assetSymbols";
+
 const SYSTEM_INSTRUCTION = `
 Eres el asistente conversacional de DGBM Risk Control, impulsado por Gemini de Google.
 Clasifica cada mensaje como "trade" o "answer".
@@ -5,8 +7,12 @@ Clasifica cada mensaje como "trade" o "answer".
 Reglas:
 - Usa "trade" cuando el usuario proporcione una operación completa. Extrae symbol, risk, entry, stop, broker y market.
 - Normaliza el activo contra USDT: BTC debe ser BTCUSDT.
+- Reconoce nombres de proyectos y conviértelos a su ticker: Solana es SOLUSDT, Ethereum es ETHUSDT, Bitcoin es BTCUSDT y Cardano es ADAUSDT.
+- Reconoce cashtags como activos: $NOBODY significa NOBODYUSDT y $SOL significa SOLUSDT.
 - Brokers admitidos: BINANCE, BYBIT, MEXC, BITGET y BITUNIX. Usa null cuando no se indique.
 - market debe ser "spot", "futures" o null cuando no se indique.
+- broker y market son opcionales: no los solicites ni impidas el cálculo si symbol, risk, entry y stop ya están completos.
+- Si el usuario dice short, venta en corto o posición corta, usa market "futures" salvo que indique otro mercado explícitamente.
 - risk es el dinero máximo que el usuario acepta perder.
 - Reconoce SL, stop y stop loss como stop.
 - Usa "answer" para preguntas, saludos, conceptos de trading y operaciones incompletas.
@@ -16,7 +22,9 @@ Reglas:
 - No calcules el size dentro de una respuesta, no recomiendes operaciones y no inventes datos.
 - No confundas apalancamiento con riesgo.
 - Si a una operación le faltan datos, usa "answer" y solicita únicamente los datos faltantes.
-- Nunca completes un activo faltante usando el contexto de la operación anterior.
+- Combina los datos del historial pendiente con el mensaje actual. El usuario puede completar riesgo, activo, entrada, stop, broker o mercado en varios mensajes.
+- El historial pendiente pertenece a la misma operación y tiene prioridad sobre el contexto del último cálculo.
+- Nunca completes un activo faltante usando solamente el contexto de una operación ya calculada.
 
 Devuelve exclusivamente uno de estos objetos JSON, sin Markdown ni texto adicional:
 {"kind":"trade","symbol":"BTCUSDT","risk":8,"entry":61800,"stop":62250,"broker":"MEXC","market":"futures","answer":null}
@@ -44,11 +52,7 @@ function json(body: unknown, status = 200) {
 
 function normalizeSymbol(value: unknown): string | null {
   if (typeof value !== "string") return null;
-
-  const symbol = value.trim().toUpperCase().replace(/[-_/ ]/g, "");
-  if (!/^[A-Z0-9]{2,16}$/.test(symbol)) return null;
-  if (/(?:USDT|USDC|USD)$/.test(symbol)) return symbol;
-  return `${symbol}USDT`;
+  return normalizeTradingSymbol(value);
 }
 
 function positiveNumber(value: unknown): number | null {
@@ -76,33 +80,9 @@ function looksLikeOperation(message: string): boolean {
 }
 
 function hasExplicitAsset(message: string): boolean {
-  const normalized = message.toUpperCase();
-  const knownAssets = [
-    "BTC",
-    "ETH",
-    "SOL",
-    "BNB",
-    "XRP",
-    "ADA",
-    "DOGE",
-    "AVAX",
-    "LINK",
-    "SUI",
-    "LTC",
-    "BCH",
-    "DOT",
-    "TRX",
-    "TON",
-    "PEPE",
-    "SHIB",
-    "WIF"
-  ];
+  if (findTradingSymbolInText(message)) return true;
 
-  if (knownAssets.some((asset) => new RegExp(`\\b${asset}(?:USDT|USDC|USD)?\\b`).test(normalized))) {
-    return true;
-  }
-
-  return /\b(?:ACTIVO|PAR|MONEDA|TICKER)\s*[:=-]?\s*[A-Z0-9]{2,16}\b/.test(normalized);
+  return /\b(?:ACTIVO|PAR|MONEDA|TICKER)\s*[:=-]?\s*[A-Z0-9]{2,16}\b/i.test(message);
 }
 
 function symbolWasProvided(message: string, symbol: string): boolean {
@@ -110,6 +90,11 @@ function symbolWasProvided(message: string, symbol: string): boolean {
   const brokerNames = ["BINANCE", "BYBIT", "MEXC", "BITGET", "BITUNIX"];
 
   if (!baseAsset || brokerNames.includes(baseAsset)) return false;
+
+  const symbolFromMessage = findTradingSymbolInText(message);
+  if (symbolFromMessage) {
+    return symbolFromMessage.replace(/USDT$/, "") === baseAsset;
+  }
 
   const normalizedMessage = message.toUpperCase();
   const escapedAsset = baseAsset.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -137,11 +122,13 @@ export default async (request: Request) => {
 
   let message: unknown;
   let context: unknown;
+  let history: unknown;
 
   try {
-    const body = (await request.json()) as { message?: unknown; context?: unknown };
+    const body = (await request.json()) as { message?: unknown; context?: unknown; history?: unknown };
     message = body.message;
     context = body.context;
+    history = body.history;
   } catch {
     return json({ error: "El cuerpo de la solicitud no es válido." }, 400);
   }
@@ -157,9 +144,35 @@ export default async (request: Request) => {
     });
   }
 
-  const input = context
-    ? `Mensaje del usuario:\n${message}\n\nContexto del último cálculo:\n${JSON.stringify(context)}`
-    : `Mensaje del usuario:\n${message}`;
+  const safeHistory = Array.isArray(history)
+    ? history
+        .filter(
+          (item): item is { role: "user" | "assistant"; text: string } =>
+            Boolean(item) &&
+            typeof item === "object" &&
+            ((item as { role?: unknown }).role === "user" || (item as { role?: unknown }).role === "assistant") &&
+            typeof (item as { text?: unknown }).text === "string"
+        )
+        .slice(-6)
+        .map((item) => ({
+          role: item.role,
+          text: item.text.trim().slice(0, 1000)
+        }))
+        .filter((item) => item.text)
+    : [];
+
+  const input = [
+    safeHistory.length > 0
+      ? `Historial pendiente de esta misma operación:\n${safeHistory
+          .map((item) => `${item.role === "user" ? "Usuario" : "Asistente"}: ${item.text}`)
+          .join("\n")}`
+      : null,
+    `Mensaje actual del usuario:\n${message}`,
+    context ? `Contexto de la última operación ya calculada:\n${JSON.stringify(context)}` : null
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  const currentOperationMessages = [...safeHistory.map((item) => item.text), message].join("\n");
 
   try {
     const model = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
@@ -221,7 +234,7 @@ export default async (request: Request) => {
       market: normalizeMarket(extracted.market)
     };
 
-    if (intent.symbol && !symbolWasProvided(message, intent.symbol)) {
+    if (intent.symbol && !symbolWasProvided(currentOperationMessages, intent.symbol)) {
       return json({
         kind: "answer",
         answer: "Me falta el activo o par. Ejemplo: ADA, BTCUSDT o ETH/USDT."

@@ -32,10 +32,11 @@ export function useRiskCalculator() {
 
     if (nextErrors.length > 0) {
       setResult(null);
-      return;
+      return false;
     }
 
     setResult(calculateRisk(calculatorInput));
+    return true;
   }
 
   function clear() {

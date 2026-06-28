@@ -57,4 +57,23 @@ describe("geminiTradeInterpreter", () => {
       stop: 62250
     });
   });
+
+  it("normaliza el nombre del proyecto aunque Gemini no devuelva el ticker", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          kind: "trade",
+          symbol: "Solana",
+          risk: 8,
+          entry: 140,
+          stop: 135
+        })
+      )
+    );
+
+    await expect(geminiTradeInterpreter.interpret("Solana riesgo 8 entrada 140 stop 135")).resolves.toMatchObject({
+      symbol: "SOLUSDT"
+    });
+  });
 });

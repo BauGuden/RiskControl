@@ -5,6 +5,7 @@ import {
   type TradeInterpreter
 } from "./tradeInterpreter";
 import type { Broker, Market } from "../../types";
+import { normalizeTradingSymbol } from "../../data/assetSymbols";
 
 export type GeminiChatContext = {
   symbol: string;
@@ -18,6 +19,11 @@ export type GeminiChatContext = {
   baseAsset: string;
   notionalEntry: number;
   totalLossAtStop: number;
+};
+
+export type GeminiHistoryMessage = {
+  role: "user" | "assistant";
+  text: string;
 };
 
 export type GeminiChatResponse =
@@ -61,14 +67,15 @@ function getError(payload: unknown): string {
 
 export async function askGemini(
   message: string,
-  context?: GeminiChatContext
+  context?: GeminiChatContext,
+  history: GeminiHistoryMessage[] = []
 ): Promise<GeminiChatResponse> {
   const response = await fetch("/api/interpret-trade", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ message, context })
+    body: JSON.stringify({ message, context, history })
   });
 
   const payload: unknown = await response.json().catch(() => null);
@@ -83,10 +90,15 @@ export async function askGemini(
   }
 
   if (result.kind === "trade" && isTradeIntent(result)) {
+    const symbol = normalizeTradingSymbol(result.symbol);
+    if (!symbol) {
+      throw new TradeInterpretationError("Gemini no identificó un activo válido.");
+    }
+
     return {
       kind: "trade",
       intent: {
-        symbol: result.symbol,
+        symbol,
         risk: result.risk,
         entry: result.entry,
         stop: result.stop,

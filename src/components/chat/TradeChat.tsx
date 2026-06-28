@@ -42,6 +42,7 @@ export function TradeChat({ form, interpreter = localTradeInterpreter }: TradeCh
   const [isThinking, setIsThinking] = useState(false);
   const [lastResult, setLastResult] = useState<CalculatorResult | null>(null);
   const [lastIntent, setLastIntent] = useState<TradeIntent | null>(null);
+  const [pendingTradeMessages, setPendingTradeMessages] = useState<string[]>([]);
   const [aiStatus, setAiStatus] = useState<"pending" | "connected" | "local">("pending");
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
 
@@ -97,6 +98,7 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
 
     try {
       let intent: TradeIntent;
+      const pendingMessages = [...pendingTradeMessages, message].slice(-6);
       const context: GeminiChatContext | undefined =
         lastResult && lastIntent
           ? {
@@ -115,10 +117,15 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
           : undefined;
 
       try {
-        const aiResponse = await askGemini(message, context);
+        const aiResponse = await askGemini(
+          message,
+          context,
+          pendingTradeMessages.map((text) => ({ role: "user", text }))
+        );
         setAiStatus("connected");
 
         if (aiResponse.kind === "answer") {
+          setPendingTradeMessages(pendingMessages);
           setMessages((current) => [
             ...current,
             {
@@ -133,7 +140,8 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
         intent = aiResponse.intent;
       } catch {
         setAiStatus("local");
-        intent = await interpreter.interpret(message);
+        const localMessage = [message, ...pendingTradeMessages.slice().reverse()].join("\n");
+        intent = await interpreter.interpret(localMessage);
       }
 
       const chatLeverage = requestedLeverage ?? 25;
@@ -160,6 +168,7 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
 
       setLastResult(result);
       setLastIntent(intent);
+      setPendingTradeMessages([]);
       setMessages((current) => [
         ...current,
         {
@@ -169,6 +178,7 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
         }
       ]);
     } catch (error) {
+      setPendingTradeMessages((current) => [...current, message].slice(-6));
       setMessages((current) => [
         ...current,
         {
@@ -196,7 +206,7 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
 
   return (
     <section
-      className="panel min-w-0 scroll-mt-5 p-5 xl:sticky xl:top-5 xl:flex xl:h-[calc(100vh-2.5rem)] xl:flex-col xl:overflow-hidden min-[1700px]:col-start-4 min-[1700px]:row-span-3 min-[1700px]:row-start-1"
+      className="panel min-w-0 scroll-mt-5 p-5 xl:sticky xl:top-5 xl:flex xl:h-[calc(100vh-2.5rem)] xl:flex-col xl:overflow-hidden"
       id="assistant"
       aria-labelledby="trade-chat-title"
     >
@@ -264,7 +274,7 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
                         ? "Copiar respuesta"
                         : "Copiar mi mensaje"
                   }
-                  className={`absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-md transition focus:outline-none focus:ring-2 focus:ring-teal-600 ${
+                  className={`absolute bottom-2 right-2 grid h-7 w-7 place-items-center rounded-md transition focus:outline-none focus:ring-2 focus:ring-teal-600 ${
                     isAssistant
                       ? "text-slate-400 hover:bg-slate-100 hover:text-teal-700 dark:hover:bg-slate-800 dark:hover:text-teal-300"
                       : "text-white/60 hover:bg-white/10 hover:text-white dark:text-slate-700 dark:hover:bg-slate-950/10 dark:hover:text-slate-950"
