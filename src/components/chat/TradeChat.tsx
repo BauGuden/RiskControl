@@ -195,16 +195,22 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
   }
 
   return (
-    <section className="panel min-w-0 scroll-mt-5 p-5 sm:p-6" id="assistant" aria-labelledby="trade-chat-title">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase text-teal-700 dark:text-teal-300">Asistente de size</p>
-          <h2 className="mt-1 text-xl font-extrabold" id="trade-chat-title">
+    <section
+      className="panel min-w-0 scroll-mt-5 p-5 xl:sticky xl:top-5 xl:flex xl:h-[calc(100vh-2.5rem)] xl:flex-col xl:overflow-hidden min-[1700px]:col-start-4 min-[1700px]:row-span-3 min-[1700px]:row-start-1"
+      id="assistant"
+      aria-labelledby="trade-chat-title"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-700 dark:text-teal-300">
+            Asistente de size
+          </p>
+          <h2 className="mt-1 text-lg font-extrabold tracking-tight" id="trade-chat-title">
             Describe tu operación
           </h2>
         </div>
         <span
-          className={`border px-2 py-1 text-[10px] font-bold uppercase ${
+          className={`flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${
             aiStatus === "connected"
               ? "border-teal-200 bg-teal-50 text-teal-800 dark:border-teal-900 dark:bg-teal-950 dark:text-teal-300"
               : aiStatus === "local"
@@ -212,16 +218,21 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
                 : "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
           }`}
         >
-          {aiStatus === "connected" ? "Gemini conectado" : aiStatus === "local" ? "Modo local" : "Gemini pendiente"}
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              aiStatus === "connected" ? "bg-teal-500" : aiStatus === "local" ? "bg-amber-500" : "bg-slate-400"
+            }`}
+          />
+          {aiStatus === "connected" ? "Gemini" : aiStatus === "local" ? "Local" : "Conectando"}
         </span>
       </div>
 
-      <p className="muted mt-2 text-xs">
-        Gemini interpreta el mensaje; el cálculo usa el mercado, broker y fees seleccionados arriba.
+      <p className="muted mt-2 text-xs leading-5">
+        Describe la entrada y Gemini prepara el cálculo con tus fees.
       </p>
 
       <div
-        className="mt-5 max-h-96 min-h-56 space-y-3 overflow-y-auto border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950"
+        className="scrollbar-none mt-4 max-h-96 min-h-56 space-y-3 overflow-y-auto rounded-2xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100 xl:min-h-0 xl:max-h-none xl:flex-1 dark:bg-slate-950/70 dark:ring-slate-800"
         role="log"
       >
         {messages.map((message) => {
@@ -233,15 +244,15 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
               key={message.id}
             >
               {isAssistant ? (
-                <span className="grid h-8 w-8 shrink-0 place-items-center bg-teal-700 text-white dark:bg-teal-500 dark:text-slate-950">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-teal-700 text-white shadow-sm dark:bg-teal-400 dark:text-slate-950">
                   <Bot className="h-4 w-4" aria-hidden="true" />
                 </span>
               ) : null}
               <div
                 className={`group relative max-w-[85%] px-3 py-2 text-sm leading-6 ${
                   isAssistant
-                    ? "border border-slate-200 bg-white pr-11 dark:border-slate-800 dark:bg-slate-900"
-                    : "bg-slate-950 pr-11 text-white dark:bg-teal-500 dark:text-slate-950"
+                    ? "rounded-2xl rounded-tl-md border border-slate-100 bg-white pr-11 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                    : "rounded-2xl rounded-tr-md bg-slate-950 pr-11 text-white shadow-sm dark:bg-teal-400 dark:text-slate-950"
                 }`}
               >
                 <p className="m-0 whitespace-pre-line">{message.text}</p>
@@ -273,7 +284,7 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
                 </button>
               </div>
               {!isAssistant ? (
-                <span className="grid h-8 w-8 shrink-0 place-items-center bg-slate-950 text-white dark:bg-slate-800">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-slate-950 text-white dark:bg-slate-800">
                   <UserRound className="h-4 w-4" aria-hidden="true" />
                 </span>
               ) : null}
@@ -284,7 +295,7 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
       </div>
 
       <button
-        className="muted-soft mt-3 text-left text-xs underline decoration-dotted underline-offset-4 hover:text-teal-700 dark:hover:text-teal-300"
+        className="muted-soft mt-3 w-fit text-left text-xs font-semibold transition hover:text-teal-700 dark:hover:text-teal-300"
         onClick={() => setInput(EXAMPLE)}
         type="button"
       >

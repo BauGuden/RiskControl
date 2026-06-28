@@ -63,14 +63,14 @@ export function SymbolPairInput({ value, onChange, errors }: SymbolPairInputProp
 
       {isOpen ? (
         <div
-          className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-950"
+          className="absolute z-20 mt-2 max-h-72 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-950"
           id="symbol-options"
           role="listbox"
         >
           {pairs.length > 0 ? (
             pairs.map((pair) => (
               <button
-                className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition hover:bg-slate-50 focus:bg-slate-50 focus:outline-none dark:hover:bg-slate-900 dark:focus:bg-slate-900"
+                className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-slate-50 focus:bg-slate-50 focus:outline-none dark:hover:bg-slate-900 dark:focus:bg-slate-900"
                 key={pair.symbol}
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={() => handleSelect(pair.symbol)}

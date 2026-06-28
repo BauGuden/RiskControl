@@ -19,25 +19,35 @@ export function ResultsPanel({ result, copyLabel, shareLabel, onCopy, onShare }:
 
   return (
     <section className="panel min-w-0 scroll-mt-5 p-5 sm:p-6" id="results" aria-live="polite">
-      <div className="mb-5 flex items-start justify-between gap-4">
+      <div className="mb-5 flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase text-teal-700 dark:text-teal-300">Resultados</p>
-          <h2 className="mt-1 text-xl font-extrabold">Resumen de operación</h2>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-700 dark:text-teal-300">
+            Resultados
+          </p>
+          <h2 className="mt-1 text-lg font-extrabold tracking-tight">Resumen de operación</h2>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
-          <button className="icon-btn" disabled={!result} onClick={onCopy} title="Copiar resultado" type="button">
+          <button
+            aria-label={copyLabel}
+            className="icon-btn w-10 px-0"
+            disabled={!result}
+            onClick={onCopy}
+            title="Copiar resultado"
+            type="button"
+          >
             <Copy className="h-4 w-4" aria-hidden="true" />
-            <span>{copyLabel}</span>
+            <span className="sr-only">{copyLabel}</span>
           </button>
           <button
-            className="icon-btn"
+            aria-label={shareLabel}
+            className="icon-btn w-10 px-0"
             disabled={!result}
             onClick={onShare}
             title="Compartir resultado"
             type="button"
           >
             <Share2 className="h-4 w-4" aria-hidden="true" />
-            <span>{shareLabel}</span>
+            <span className="sr-only">{shareLabel}</span>
           </button>
         </div>
       </div>
@@ -71,7 +81,7 @@ export function ResultsPanel({ result, copyLabel, shareLabel, onCopy, onShare }:
               <Info className={`h-4 w-4 ${sideTextClass}`} aria-hidden="true" />
               Objetivos RR
             </div>
-            <div className="overflow-hidden border border-slate-200 dark:border-slate-800">
+            <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
               <div className="muted-soft grid grid-cols-[58px_1fr_1fr] bg-slate-50 px-3 py-2 text-xs font-bold uppercase dark:bg-slate-950 sm:grid-cols-[70px_1fr_1fr_1fr]">
                 <span>RR</span>
                 <span>TP</span>
@@ -103,7 +113,7 @@ export function ResultsPanel({ result, copyLabel, shareLabel, onCopy, onShare }:
 
 function FeeCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-slate-200 p-3 dark:border-slate-800">
+    <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 dark:border-slate-800 dark:bg-slate-950/50">
       <p className="muted-soft text-xs font-semibold uppercase">{label}</p>
       <p className="mt-1 font-bold">{value}</p>
     </div>

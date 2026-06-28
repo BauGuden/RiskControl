@@ -14,9 +14,9 @@ type ThemeSelectorProps = {
 
 export function ThemeSelector({ value, onChange }: ThemeSelectorProps) {
   return (
-    <div className="mt-8">
+    <div className="mt-6">
       <label className="label">Tema</label>
-      <div className="grid grid-cols-3 border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
+      <div className="grid grid-cols-3 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
         {themeOptions.map((option) => {
           const Icon = option.icon;
           const active = value === option.value;
@@ -26,8 +26,8 @@ export function ThemeSelector({ value, onChange }: ThemeSelectorProps) {
               aria-pressed={active}
               className={
                 active
-                  ? "flex h-10 items-center justify-center gap-2 bg-slate-950 px-2 text-xs font-bold text-white dark:bg-teal-500 dark:text-slate-950"
-                  : "flex h-10 items-center justify-center gap-2 px-2 text-xs font-bold text-slate-600 transition hover:bg-white dark:text-slate-300 dark:hover:bg-slate-800"
+                  ? "flex h-9 items-center justify-center gap-1 rounded-lg bg-slate-950 px-1 text-[11px] font-bold text-white shadow-sm dark:bg-teal-400 dark:text-slate-950"
+                  : "flex h-9 items-center justify-center gap-1 rounded-lg px-1 text-[11px] font-bold text-slate-600 transition hover:bg-white dark:text-slate-300 dark:hover:bg-slate-800"
               }
               key={option.value}
               onClick={() => onChange(option.value)}
@@ -35,7 +35,7 @@ export function ThemeSelector({ value, onChange }: ThemeSelectorProps) {
               type="button"
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline lg:hidden xl:inline">{option.label}</span>
+              <span>{option.label}</span>
             </button>
           );
         })}

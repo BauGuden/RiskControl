@@ -12,8 +12,8 @@ export function Metric({ label, value, tone = "default" }: MetricProps) {
   }[tone];
 
   return (
-    <div className="border-b border-slate-200 py-3 last:border-b-0 dark:border-slate-800">
-      <p className="muted-soft text-xs font-semibold uppercase">{label}</p>
+    <div className="border-b border-slate-100 py-3 last:border-b-0 dark:border-slate-800">
+      <p className="muted-soft text-[10px] font-bold uppercase tracking-wide">{label}</p>
       <p className={valueClass}>{value}</p>
     </div>
   );

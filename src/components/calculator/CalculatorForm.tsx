@@ -23,10 +23,22 @@ export function CalculatorForm({ form, errors, onUpdate, onCalculate, onClear }:
 
   return (
     <section className="panel min-w-0 scroll-mt-5 p-5 sm:p-6" id="calculator">
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <div className="mb-6 flex items-center gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-50 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300">
+          <Calculator className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-700 dark:text-teal-300">
+            Parámetros
+          </p>
+          <h2 className="text-lg font-extrabold tracking-tight">Configura tu operación</h2>
+        </div>
+      </div>
+
+      <form className="space-y-5" onSubmit={handleSubmit}>
         <div>
           <label className="label">Mercado</label>
-          <div className="grid grid-cols-2 border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
+          <div className="grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
             {(["spot", "futures"] as Market[]).map((market) => (
               <button
                 className={form.market === market ? "segmented-active" : "segmented"}
@@ -163,7 +175,7 @@ export function CalculatorForm({ form, errors, onUpdate, onCalculate, onClear }:
           />
         </div>
 
-        <label className="flex items-start gap-3 border border-slate-200 bg-slate-50 p-4 text-sm font-medium text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+        <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-sm font-medium text-slate-700 transition hover:border-teal-200 dark:border-slate-800 dark:bg-slate-950/70 dark:text-slate-200 dark:hover:border-teal-800">
           <input
             checked={form.includeFeesInRisk}
             className="mt-1 h-4 w-4 accent-teal-700"
@@ -174,7 +186,7 @@ export function CalculatorForm({ form, errors, onUpdate, onCalculate, onClear }:
         </label>
 
         {errors.length > 0 ? (
-          <div className="border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
+          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-200">
             Revisa los campos marcados antes de calcular.
           </div>
         ) : null}
