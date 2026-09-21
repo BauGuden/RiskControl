@@ -4,6 +4,15 @@ export type Broker = "BINANCE" | "BYBIT" | "MEXC" | "BITGET" | "BITUNIX" | "CUST
 
 export type OrderRole = "maker" | "taker";
 
+export type FeeProfile =
+  | "standard"
+  | "bnb"
+  | "bgb"
+  | "zero-fee"
+  | "mexc-btc"
+  | "mexc-eth"
+  | "api";
+
 export type Side = "Long" | "Short";
 
 export type FeePair = {
@@ -15,6 +24,13 @@ export type FeePreset = {
   label: string;
   spot: FeePair;
   futures: FeePair;
+  note?: string;
+};
+
+export type FeeProfileOption = {
+  id: FeeProfile;
+  label: string;
+  fees: FeePair;
   note?: string;
 };
 

@@ -35,6 +35,17 @@ pnpm exec netlify dev
 
 `pnpm dev` ejecuta solamente Vite. En ese modo la Netlify Function no está disponible y el chat utilizará el intérprete local de respaldo.
 
+## Perfiles de comisiones
+
+Las tarifas fueron verificadas el 20 de septiembre de 2026 y se modelan por ruta de ejecución:
+
+- Estándar/VIP 0 para Binance, Bybit, MEXC, Bitget y Bitunix.
+- Binance con descuento BNB y Bitget Spot con descuento BGB.
+- MEXC 0-Fee Fest, referencias especiales BTCUSDT/ETHUSDT y Futures API.
+- MEXC Futures API usa 0.060% maker / 0.080% taker y no hereda promociones 0-fee.
+
+Las promociones dependen del par, la cuenta y la región. Antes de operar, confirma siempre la tarifa mostrada por el exchange. Funding, spread y slippage no forman parte de estos presets.
+
 ## Validación
 
 Antes de publicar:
@@ -112,7 +123,7 @@ El primer deploy es una vista previa. El comando con `--prod` publica en el domi
 Para comprobar directamente la función desde PowerShell:
 
 ```powershell
-$body = @{ message = "BTC riesgo 8 entrada 61800 SL 62250 en MEXC" } | ConvertTo-Json
+$body = @{ message = "BTC riesgo 8 entrada 61800 SL 62250 en MEXC Futures por API" } | ConvertTo-Json
 Invoke-RestMethod `
   -Method Post `
   -Uri "https://TU-DOMINIO.netlify.app/api/interpret-trade" `
@@ -120,7 +131,7 @@ Invoke-RestMethod `
   -Body $body
 ```
 
-La respuesta debe tener `kind: trade`, `symbol: BTCUSDT` y `broker: MEXC`.
+La respuesta debe tener `kind: trade`, `symbol: BTCUSDT`, `broker: MEXC` y `feeProfile: api`.
 
 ## Solución de problemas
 

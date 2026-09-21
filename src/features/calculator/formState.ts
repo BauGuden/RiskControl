@@ -1,9 +1,10 @@
-import type { Broker, CalculatorInput, Market, OrderRole } from "../../types";
+import type { Broker, CalculatorInput, FeeProfile, Market, OrderRole } from "../../types";
 
 export type CalculatorFormState = {
   symbol: string;
   market: Market;
   broker: Broker;
+  feeProfile: FeeProfile;
   entry: string;
   stop: string;
   risk: string;
@@ -19,6 +20,7 @@ export const initialCalculatorForm: CalculatorFormState = {
   symbol: "BTCUSDT",
   market: "futures",
   broker: "BINANCE",
+  feeProfile: "standard",
   entry: "",
   stop: "",
   risk: "",

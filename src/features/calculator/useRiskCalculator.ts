@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getDefaultFeePct } from "../../data/fees";
+import { getDefaultFeePct, resolveFeeProfile } from "../../data/fees";
 import { calculateRisk, validateInput } from "../../lib/calculateRisk";
 import type { CalculatorResult, ValidationError } from "../../types";
 import { initialCalculatorForm, toCalculatorInput, type CalculatorFormState } from "./formState";
@@ -13,12 +13,16 @@ export function useRiskCalculator() {
   const [shareLabel, setShareLabel] = useState("Compartir");
 
   useEffect(() => {
-    setForm((current) => ({
-      ...current,
-      feeInPct: String(getDefaultFeePct(current.broker, current.market, current.entryRole)),
-      feeOutPct: String(getDefaultFeePct(current.broker, current.market, current.exitRole))
-    }));
-  }, [form.broker, form.market, form.entryRole, form.exitRole]);
+    setForm((current) => {
+      const feeProfile = resolveFeeProfile(current.broker, current.market, current.feeProfile);
+      return {
+        ...current,
+        feeProfile,
+        feeInPct: String(getDefaultFeePct(current.broker, current.market, current.entryRole, feeProfile)),
+        feeOutPct: String(getDefaultFeePct(current.broker, current.market, current.exitRole, feeProfile))
+      };
+    });
+  }, [form.broker, form.market, form.entryRole, form.exitRole, form.feeProfile]);
 
   const calculatorInput = useMemo(() => toCalculatorInput(form), [form]);
 

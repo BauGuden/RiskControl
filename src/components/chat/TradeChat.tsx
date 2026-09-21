@@ -1,6 +1,6 @@
 import { Bot, Check, Copy, Send, UserRound } from "lucide-react";
 import { useState, type FormEvent, type KeyboardEvent } from "react";
-import { getDefaultFeePct } from "../../data/fees";
+import { getDefaultFeePct, getFeeProfileLabel, resolveFeeProfile } from "../../data/fees";
 import type { CalculatorFormState } from "../../features/calculator/formState";
 import { toCalculatorInput } from "../../features/calculator/formState";
 import { resultToText } from "../../features/calculator/resultText";
@@ -105,6 +105,9 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
               symbol: lastIntent.symbol,
               broker: lastResult.broker,
               market: lastResult.market,
+              feeProfile: lastIntent.feeProfile ?? form.feeProfile,
+              feeInPct: (lastResult.feeOpen / lastResult.notionalEntry) * 100,
+              feeOutPct: (lastResult.feeCloseAtStop / lastResult.notionalStop) * 100,
               side: lastResult.side,
               risk: lastIntent.risk,
               entry: lastIntent.entry,
@@ -147,34 +150,42 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
       const chatLeverage = requestedLeverage ?? 25;
       const tradeBroker = intent.broker ?? form.broker;
       const tradeMarket = intent.market ?? form.market;
-      const useBrokerDefaults = Boolean(intent.broker || intent.market);
+      const requestedFeeProfile = intent.feeProfile ?? (intent.broker || intent.market ? "standard" : form.feeProfile);
+      const feeProfile = resolveFeeProfile(tradeBroker, tradeMarket, requestedFeeProfile);
+      const useBrokerDefaults = Boolean(intent.broker || intent.market || intent.feeProfile);
       const calculationForm: CalculatorFormState = {
         ...form,
         symbol: intent.symbol,
         broker: tradeBroker,
         market: tradeMarket,
+        feeProfile,
         risk: String(intent.risk),
         entry: String(intent.entry),
         stop: String(intent.stop),
         feeInPct: useBrokerDefaults
-          ? String(getDefaultFeePct(tradeBroker, tradeMarket, form.entryRole))
+          ? String(getDefaultFeePct(tradeBroker, tradeMarket, form.entryRole, feeProfile))
           : form.feeInPct,
         feeOutPct: useBrokerDefaults
-          ? String(getDefaultFeePct(tradeBroker, tradeMarket, form.exitRole))
+          ? String(getDefaultFeePct(tradeBroker, tradeMarket, form.exitRole, feeProfile))
           : form.feeOutPct,
         leverage: String(chatLeverage)
       };
       const result = calculateRisk(toCalculatorInput(calculationForm));
 
       setLastResult(result);
-      setLastIntent(intent);
+      setLastIntent({ ...intent, feeProfile });
       setPendingTradeMessages([]);
       setMessages((current) => [
         ...current,
         {
           id: Date.now() + 1,
           role: "assistant",
-          text: resultToText(result, calculationForm.feeInPct, calculationForm.feeOutPct, chatLeverage)
+          text: `Perfil de fees: ${getFeeProfileLabel(feeProfile)}\n\n${resultToText(
+            result,
+            calculationForm.feeInPct,
+            calculationForm.feeOutPct,
+            chatLeverage
+          )}`
         }
       ]);
     } catch (error) {

@@ -5,12 +5,13 @@ Eres el asistente conversacional de DGBM Risk Control, impulsado por Gemini de G
 Clasifica cada mensaje como "trade" o "answer".
 
 Reglas:
-- Usa "trade" cuando el usuario proporcione una operación completa. Extrae symbol, risk, entry, stop, broker y market.
+- Usa "trade" cuando el usuario proporcione una operación completa. Extrae symbol, risk, entry, stop, broker, market y feeProfile.
 - Normaliza el activo contra USDT: BTC debe ser BTCUSDT.
 - Reconoce nombres de proyectos y conviértelos a su ticker: Solana es SOLUSDT, Ethereum es ETHUSDT, Bitcoin es BTCUSDT y Cardano es ADAUSDT.
 - Reconoce cashtags como activos: $NOBODY significa NOBODYUSDT y $SOL significa SOLUSDT.
 - Brokers admitidos: BINANCE, BYBIT, MEXC, BITGET y BITUNIX. Usa null cuando no se indique.
 - market debe ser "spot", "futures" o null cuando no se indique.
+- feeProfile debe ser "standard", "bnb", "bgb", "zero-fee", "mexc-btc", "mexc-eth", "api" o null. Detecta "con BNB", "con BGB", "0-fee/sin comisiones" y "por API/ejecución automática". Para MEXC Futures web/app usa "mexc-btc" en BTCUSDT y "mexc-eth" en ETHUSDT, salvo que el usuario indique 0-fee o API.
 - broker y market son opcionales: no los solicites ni impidas el cálculo si symbol, risk, entry y stop ya están completos.
 - Si el usuario dice short, venta en corto o posición corta, usa market "futures" salvo que indique otro mercado explícitamente.
 - risk es el dinero máximo que el usuario acepta perder.
@@ -18,7 +19,10 @@ Reglas:
 - Usa "answer" para preguntas, saludos, conceptos de trading y operaciones incompletas.
 - En "answer", responde en español de forma breve usando el contexto del último cálculo cuando sea útil.
 - Si preguntan tu identidad, explica que eres el asistente de DGBM Risk Control y que usas Gemini de Google.
-- Puedes explicar size, notional, riesgo, fees, margen y apalancamiento.
+- Puedes explicar size, notional, riesgo, fees, margen, apalancamiento, funding, spread y slippage.
+- Tarifas base verificadas el 20 de septiembre de 2026: Binance Spot 0.10%/0.10% y Futures 0.020%/0.050%; con BNB 0.075%/0.075% y 0.018%/0.045%. Bybit VIP 0 Spot 0.10%/0.10% y Futures 0.020%/0.055%. Bitunix VIP 0 Spot 0.080%/0.10% y Futures 0.020%/0.060%. Bitget estándar Spot 0.10%/0.10% y Futures 0.020%/0.060%; Spot con BGB 0.080%/0.080%.
+- MEXC web/app fuera de promociones: Spot 0% maker/0.050% taker y Futures aproximadamente 0.010%/0.040%. Los pares elegibles 0-Fee Fest son 0%/0%, pero dependen del par, cuenta y región. MEXC Futures API cobra 0.060% maker/0.080% taker desde el 1 de junio de 2026 y esa tarifa prevalece sobre promociones y descuentos.
+- Funding, spread y slippage no son trading fees fijos. No los inventes; pide el dato o recomienda usar un supuesto editable.
 - No calcules el size dentro de una respuesta, no recomiendes operaciones y no inventes datos.
 - No confundas apalancamiento con riesgo.
 - Si a una operación le faltan datos, usa "answer" y solicita únicamente los datos faltantes.
@@ -27,8 +31,8 @@ Reglas:
 - Nunca completes un activo faltante usando solamente el contexto de una operación ya calculada.
 
 Devuelve exclusivamente uno de estos objetos JSON, sin Markdown ni texto adicional:
-{"kind":"trade","symbol":"BTCUSDT","risk":8,"entry":61800,"stop":62250,"broker":"MEXC","market":"futures","answer":null}
-{"kind":"answer","symbol":null,"risk":null,"entry":null,"stop":null,"broker":null,"market":null,"answer":"Respuesta breve"}
+{"kind":"trade","symbol":"BTCUSDT","risk":8,"entry":61800,"stop":62250,"broker":"MEXC","market":"futures","feeProfile":"api","answer":null}
+{"kind":"answer","symbol":null,"risk":null,"entry":null,"stop":null,"broker":null,"market":null,"feeProfile":null,"answer":"Respuesta breve"}
 `.trim();
 
 type GeminiGenerateContent = {
@@ -69,6 +73,14 @@ function normalizeMarket(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const market = value.trim().toLowerCase();
   return market === "spot" || market === "futures" ? market : null;
+}
+
+function normalizeFeeProfile(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const profile = value.trim().toLowerCase();
+  return ["standard", "bnb", "bgb", "zero-fee", "mexc-btc", "mexc-eth", "api"].includes(profile)
+    ? profile
+    : null;
 }
 
 function looksLikeOperation(message: string): boolean {
@@ -231,7 +243,8 @@ export default async (request: Request) => {
       entry: positiveNumber(extracted.entry),
       stop: positiveNumber(extracted.stop),
       broker: normalizeBroker(extracted.broker),
-      market: normalizeMarket(extracted.market)
+      market: normalizeMarket(extracted.market),
+      feeProfile: normalizeFeeProfile(extracted.feeProfile)
     };
 
     if (intent.symbol && !symbolWasProvided(currentOperationMessages, intent.symbol)) {

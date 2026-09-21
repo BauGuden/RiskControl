@@ -1,8 +1,8 @@
 import { Calculator, RotateCcw } from "lucide-react";
-import { BROKER_OPTIONS, getBrokerLabel, getPresetNote } from "../../data/fees";
+import { BROKER_OPTIONS, getBrokerLabel, getFeeProfileOptions, getPresetNote } from "../../data/fees";
 import type { CalculatorFormState } from "../../features/calculator/formState";
 import { TextInput } from "../ui/TextInput";
-import type { Broker, Market, OrderRole, ValidationError } from "../../types";
+import type { Broker, FeeProfile, Market, OrderRole, ValidationError } from "../../types";
 import { SymbolPairInput } from "./SymbolPairInput";
 
 type CalculatorFormProps = {
@@ -14,7 +14,8 @@ type CalculatorFormProps = {
 };
 
 export function CalculatorForm({ form, errors, onUpdate, onCalculate, onClear }: CalculatorFormProps) {
-  const presetNote = getPresetNote(form.broker);
+  const feeProfiles = getFeeProfileOptions(form.broker, form.market);
+  const presetNote = getPresetNote(form.broker, form.market, form.feeProfile);
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,6 +73,24 @@ export function CalculatorForm({ form, errors, onUpdate, onCalculate, onClear }:
               {BROKER_OPTIONS.map((broker) => (
                 <option key={broker} value={broker}>
                   {getBrokerLabel(broker)}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="label" htmlFor="feeProfile">
+              Tarifa / ruta de ejecución
+            </label>
+            <select
+              className="input"
+              id="feeProfile"
+              onChange={(event) => onUpdate("feeProfile", event.target.value as FeeProfile)}
+              value={form.feeProfile}
+            >
+              {feeProfiles.map((profile) => (
+                <option key={profile.id} value={profile.id}>
+                  {profile.label} · Maker {profile.fees.maker}% / Taker {profile.fees.taker}%
                 </option>
               ))}
             </select>

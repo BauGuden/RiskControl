@@ -4,13 +4,16 @@ import {
   type TradeIntent,
   type TradeInterpreter
 } from "./tradeInterpreter";
-import type { Broker, Market } from "../../types";
+import type { Broker, FeeProfile, Market } from "../../types";
 import { normalizeTradingSymbol } from "../../data/assetSymbols";
 
 export type GeminiChatContext = {
   symbol: string;
   broker: Broker;
   market: Market;
+  feeProfile: FeeProfile;
+  feeInPct: number;
+  feeOutPct: number;
   side: "Long" | "Short";
   risk: number;
   entry: number;
@@ -59,6 +62,12 @@ function isMarket(value: unknown): value is Market {
   return value === "spot" || value === "futures";
 }
 
+function isFeeProfile(value: unknown): value is FeeProfile {
+  return ["standard", "bnb", "bgb", "zero-fee", "mexc-btc", "mexc-eth", "api"].includes(
+    String(value)
+  );
+}
+
 function getError(payload: unknown): string {
   return payload && typeof payload === "object" && typeof (payload as { error?: unknown }).error === "string"
     ? (payload as { error: string }).error
@@ -103,7 +112,8 @@ export async function askGemini(
         entry: result.entry,
         stop: result.stop,
         ...(isBroker(result.broker) ? { broker: result.broker } : {}),
-        ...(isMarket(result.market) ? { market: result.market } : {})
+        ...(isMarket(result.market) ? { market: result.market } : {}),
+        ...(isFeeProfile(result.feeProfile) ? { feeProfile: result.feeProfile } : {})
       }
     };
   }

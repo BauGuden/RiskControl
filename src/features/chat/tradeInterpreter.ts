@@ -1,4 +1,4 @@
-import type { Broker, Market } from "../../types";
+import type { Broker, FeeProfile, Market } from "../../types";
 import { findTradingSymbolInText, normalizeTradingSymbol } from "../../data/assetSymbols";
 
 export type TradeIntent = {
@@ -8,6 +8,7 @@ export type TradeIntent = {
   stop: number;
   broker?: Broker;
   market?: Market;
+  feeProfile?: FeeProfile;
 };
 
 export interface TradeInterpreter {
@@ -87,11 +88,26 @@ function extractMarket(message: string): Market | null {
   return null;
 }
 
+function extractFeeProfile(
+  message: string,
+  symbol: string | null,
+  broker: Broker | null
+): FeeProfile | null {
+  if (/\b(?:api|ejecuci[oó]n\s+autom[aá]tica)\b/i.test(message)) return "api";
+  if (/\b(?:0[\s-]?fee|zero[\s-]?fee|sin\s+comisiones?)\b/i.test(message)) return "zero-fee";
+  if (/\bbnb\b/i.test(message)) return "bnb";
+  if (/\bbgb\b/i.test(message)) return "bgb";
+  if (broker === "MEXC" && symbol === "BTCUSDT") return "mexc-btc";
+  if (broker === "MEXC" && symbol === "ETHUSDT") return "mexc-eth";
+  return null;
+}
+
 export const localTradeInterpreter: TradeInterpreter = {
   async interpret(message) {
     const symbol = extractSymbol(message);
     const broker = extractBroker(message);
     const market = extractMarket(message);
+    const feeProfile = extractFeeProfile(message, symbol, broker);
     const risk = extractNumber(message, [
       /(?:arriesg\w*|riesgo|perder\w*)\s*(?:hasta|de)?\s*\$?\s*([\d.,]+)/i,
       /\$\s*([\d.,]+)\s*(?:de\s+)?riesgo/i,
@@ -124,7 +140,8 @@ export const localTradeInterpreter: TradeInterpreter = {
       entry,
       stop,
       ...(broker ? { broker } : {}),
-      ...(market ? { market } : {})
+      ...(market ? { market } : {}),
+      ...(feeProfile ? { feeProfile } : {})
     };
   }
 };
