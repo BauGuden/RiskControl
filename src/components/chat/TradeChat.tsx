@@ -217,7 +217,7 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
 
   return (
     <section
-      className="panel min-w-0 scroll-mt-5 p-5 xl:sticky xl:top-5 xl:flex xl:h-[calc(100vh-2.5rem)] xl:flex-col xl:overflow-hidden"
+      className="panel min-w-0 scroll-mt-24 p-5 xl:sticky xl:top-24 xl:flex xl:h-[calc(100vh-7rem)] xl:min-h-[680px] xl:max-h-[820px] xl:flex-col xl:overflow-hidden"
       id="assistant"
       aria-labelledby="trade-chat-title"
     >

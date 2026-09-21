@@ -30,7 +30,7 @@ html {
 
 body {
   margin: 0;
-  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
   background: #f8fafc;
 }
 
@@ -55,8 +55,20 @@ input[type="number"]::-webkit-outer-spin-button {
   .app-shell {
     @apply bg-slate-50 dark:bg-slate-950;
     background-image:
-      radial-gradient(circle at 12% 8%, rgb(13 148 136 / 0.08), transparent 25rem),
-      radial-gradient(circle at 88% 16%, rgb(14 165 233 / 0.06), transparent 28rem);
+      radial-gradient(circle at 8% 5%, rgb(13 148 136 / 0.07), transparent 28rem),
+      radial-gradient(circle at 92% 10%, rgb(14 165 233 / 0.06), transparent 30rem);
+  }
+
+  .section-kicker {
+    @apply text-[11px] font-black uppercase tracking-[0.2em] text-teal-700 dark:text-teal-300;
+  }
+
+  .section-title {
+    @apply mt-3 text-center text-3xl font-black leading-tight tracking-[-0.035em] text-slate-950 dark:text-white sm:text-5xl;
+  }
+
+  .section-copy {
+    @apply mt-4 text-center text-sm font-medium leading-7 text-slate-600 dark:text-slate-400 sm:text-base;
   }
 
   .label {
@@ -101,6 +113,20 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 @layer utilities {
+  .hero-grid {
+    background-image:
+      linear-gradient(to right, rgb(15 23 42 / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(15 23 42 / 0.045) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, black, transparent 85%);
+  }
+
+  :root.dark .hero-grid {
+    background-image:
+      linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  }
+
   .scrollbar-none {
     scrollbar-width: none;
   }

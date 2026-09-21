@@ -35,6 +35,27 @@ pnpm exec netlify dev
 
 `pnpm dev` ejecuta solamente Vite. En ese modo la Netlify Function no está disponible y el chat utilizará el intérprete local de respaldo.
 
+## Arquitectura del frontend
+
+La página está organizada para que el contenido y las herramientas puedan crecer por separado:
+
+```text
+src/
+  components/
+    landing/      Secciones editoriales, navegación y footer
+    tool/         Composición de herramientas interactivas
+    calculator/   Formulario de riesgo
+    chat/         Asistente conversacional
+    results/      Presentación de resultados
+    ui/           Controles reutilizables
+  content/        Copy y colecciones de contenido de la landing
+  data/           Presets de fees, símbolos y pares
+  features/       Estado y casos de uso por dominio
+  lib/            Cálculos deterministas y utilidades
+```
+
+Para añadir una nueva sección editorial, crea el componente dentro de `components/landing` y guarda sus datos repetibles en `content/landing.ts`. Las nuevas calculadoras deben vivir como features independientes y ensamblarse desde `components/tool`.
+
 ## Perfiles de comisiones
 
 Las tarifas fueron verificadas el 20 de septiembre de 2026 y se modelan por ruta de ejecución:
