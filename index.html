@@ -7,7 +7,7 @@
     <meta name="author" content="DGBAUTISTA" />
     <meta
       name="description"
-      content="Herramientas y educación para trading de criptomonedas. Calcula tamaño de posición, riesgo, fees, margen y objetivos antes de operar Spot o Futures."
+      content="Calcula riesgo, lotaje Standard y Cent, equivalencias cripto y margen CFD para Exness y Vantage. Incluye calculadora cripto Spot y Futures."
     />
     <meta
       name="keywords"
@@ -21,21 +21,24 @@
     <meta property="og:title" content="DGBM Risk Control | Opera con un plan" />
     <meta
       property="og:description"
-      content="Calcula riesgo, tamaño, fees y objetivos netos para tus operaciones de criptomonedas Spot y Futures."
+      content="Calcula riesgo, lotes Standard y Cent, spread y margen en Exness y Vantage. También para cripto Spot y Futures."
     />
     <meta property="og:image" content="/img/logo.png" />
     <meta property="og:image:alt" content="Logo de DGBM Risk Control" />
 
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="DGBM Risk Control | Opera con un plan" />
+    <meta
+      name="twitter:title"
+      content="DGBM Risk Control | Opera con un plan"
+    />
     <meta
       name="twitter:description"
-      content="Calcula riesgo, tamaño, fees y objetivos netos para tus operaciones de criptomonedas Spot y Futures."
+      content="Calcula riesgo, lotes Standard y Cent, spread y margen en Exness y Vantage. También para cripto Spot y Futures."
     />
     <meta name="twitter:image" content="/img/logo.png" />
     <meta name="twitter:image:alt" content="Logo de DGBM Risk Control" />
 
-    <title>DGBM Risk Control | Calculadora y educación cripto</title>
+    <title>DGBM Risk Control | Riesgo cripto y lotaje CFD / MT5</title>
     <link rel="icon" type="image/png" href="/img/logo.png" />
     <link rel="apple-touch-icon" href="/img/logo.png" />
 
@@ -45,7 +48,7 @@
         "@type": "WebApplication",
         "name": "DGBM Risk Control",
         "alternateName": "DGBM Calculator",
-        "description": "Calculadora gratuita de riesgo para trading Spot y Futures que estima tamaño de posición, fees, margen, stop loss y objetivos de riesgo-beneficio.",
+        "description": "Calculadora gratuita de riesgo cripto Spot y Futures, lotaje CFD Standard y Cent, equivalencias, spread y margen para Exness y Vantage.",
         "applicationCategory": "FinanceApplication",
         "operatingSystem": "Cualquier sistema con navegador web",
         "inLanguage": "es",
@@ -64,22 +67,29 @@
           "Estimación de fees de trading",
           "Cálculo de margen para Futures",
           "Objetivos de riesgo-beneficio de 1:1 a 1:5",
-          "Soporte para mercados Spot y Futures"
+          "Soporte para mercados Spot y Futures",
+          "Lotaje CFD Standard y Cent para Exness y Vantage",
+          "Equivalencias cripto y comparación de margen por apalancamiento"
         ]
       }
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <script>
       (() => {
         const stored = localStorage.getItem("risk-control-theme");
-        const mode = ["light", "dark", "system"].includes(stored) ? stored : "system";
+        const mode = ["light", "dark", "system"].includes(stored)
+          ? stored
+          : "dark";
         const systemDark = matchMedia("(prefers-color-scheme: dark)").matches;
-        const resolved = mode === "dark" || (mode === "system" && systemDark) ? "dark" : "light";
+        const resolved =
+          mode === "dark" || (mode === "system" && systemDark)
+            ? "dark"
+            : "light";
 
         document.documentElement.classList.toggle("dark", resolved === "dark");
         document.documentElement.dataset.theme = resolved;

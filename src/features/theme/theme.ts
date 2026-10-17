@@ -7,9 +7,9 @@ export function isThemeMode(value: string | null): value is ThemeMode {
 }
 
 export function getStoredThemeMode(): ThemeMode {
-  if (typeof window === "undefined") return "system";
+  if (typeof window === "undefined") return "dark";
   const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-  return isThemeMode(stored) ? stored : "system";
+  return isThemeMode(stored) ? stored : "dark";
 }
 
 export function saveThemeMode(mode: ThemeMode): void {
@@ -18,7 +18,9 @@ export function saveThemeMode(mode: ThemeMode): void {
 
 export function resolveThemeMode(mode: ThemeMode): "light" | "dark" {
   if (mode !== "system") return mode;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 export function applyThemeMode(mode: ThemeMode): void {

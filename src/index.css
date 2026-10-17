@@ -30,7 +30,7 @@ html {
 
 body {
   margin: 0;
-  font-family: Manrope, Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: "DM Sans", Manrope, ui-sans-serif, system-ui, sans-serif;
   background: #f8fafc;
 }
 
@@ -54,9 +54,7 @@ input[type="number"]::-webkit-outer-spin-button {
 @layer components {
   .app-shell {
     @apply bg-slate-50 dark:bg-slate-950;
-    background-image:
-      radial-gradient(circle at 8% 5%, rgb(13 148 136 / 0.07), transparent 28rem),
-      radial-gradient(circle at 92% 10%, rgb(14 165 233 / 0.06), transparent 30rem);
+    background-image: none;
   }
 
   .section-kicker {
@@ -64,7 +62,7 @@ input[type="number"]::-webkit-outer-spin-button {
   }
 
   .section-title {
-    @apply mt-3 text-center text-3xl font-black leading-tight tracking-[-0.035em] text-slate-950 dark:text-white sm:text-5xl;
+    @apply mt-4 text-center text-3xl font-bold leading-tight tracking-[-0.04em] text-slate-950 dark:text-white sm:text-4xl;
   }
 
   .section-copy {
@@ -72,7 +70,7 @@ input[type="number"]::-webkit-outer-spin-button {
   }
 
   .label {
-    @apply mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-600 dark:text-slate-300;
+    @apply mb-2 block text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400;
   }
 
   .input {
@@ -100,7 +98,7 @@ input[type="number"]::-webkit-outer-spin-button {
   }
 
   .panel {
-    @apply rounded-2xl border border-slate-200/80 bg-white shadow-panel dark:border-slate-800 dark:bg-slate-900 dark:shadow-none;
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:shadow-none;
   }
 
   .muted {
@@ -110,6 +108,248 @@ input[type="number"]::-webkit-outer-spin-button {
   .muted-soft {
     @apply text-slate-500 dark:text-slate-400;
   }
+
+  .cfd-warning {
+    @apply rounded-xl border border-amber-400/30 bg-amber-500/5 p-3 text-xs leading-5 text-amber-800 dark:text-amber-200;
+  }
+
+  .cfd-table {
+    @apply w-full border-collapse whitespace-nowrap text-left text-xs;
+  }
+
+  .cfd-table th {
+    @apply bg-slate-50 px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:bg-slate-950/40 dark:text-slate-400;
+  }
+
+  .cfd-table td {
+    @apply border-t border-slate-200/70 px-5 py-3 font-mono dark:border-white/5;
+  }
+
+  .hero-section {
+    @apply relative overflow-hidden border-b border-slate-200 dark:border-white/10;
+  }
+  .hero-eyebrow {
+    @apply inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.17em] text-teal-700 dark:text-teal-300;
+  }
+  .hero-title {
+    @apply mt-5 font-extrabold tracking-[-0.05em];
+    font-size: clamp(2.35rem, 4.3vw, 3.7rem);
+    line-height: 1.13;
+  }
+  .hero-title > span {
+    @apply text-slate-500 dark:text-slate-400;
+  }
+  .hero-secondary {
+    @apply inline-flex h-12 items-center justify-center gap-2 px-2 text-xs font-bold text-slate-600 dark:text-slate-300;
+  }
+  .hero-capabilities {
+    @apply mt-7 flex flex-wrap gap-x-5 gap-y-2 text-[10px] font-medium text-slate-500 dark:text-slate-400;
+  }
+  .hero-capabilities > span {
+    @apply flex items-center gap-1.5;
+  }
+  .hero-terminal {
+    @apply overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-950/5 dark:border-slate-700 dark:bg-slate-900;
+    transform: rotate(-1deg);
+  }
+  .terminal-topbar {
+    @apply flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-5 py-3 text-[8px] font-bold tracking-[0.12em] text-slate-500 dark:border-white/10 dark:bg-slate-950/50 dark:text-slate-400;
+  }
+  .terminal-topbar i {
+    @apply block h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-600;
+  }
+  .long-badge {
+    @apply rounded-md bg-teal-500/10 px-2.5 py-1.5 font-mono text-[10px] font-semibold text-teal-700 dark:text-teal-300;
+  }
+  .hero-levels {
+    @apply mt-6 grid grid-cols-3 gap-3;
+  }
+  .hero-levels > div:nth-child(2) {
+    @apply text-center;
+  }
+  .hero-levels > div:last-child {
+    @apply text-right;
+  }
+  .hero-levels span {
+    @apply block text-[8px] font-bold tracking-wider text-slate-500 dark:text-slate-400;
+  }
+  .hero-levels strong {
+    @apply mt-1.5 block font-mono text-xs font-medium sm:text-sm;
+  }
+  .hero-levels > div:first-child strong {
+    @apply text-rose-600 dark:text-rose-300;
+  }
+  .hero-levels > div:last-child strong {
+    @apply text-teal-700 dark:text-teal-300;
+  }
+  .hero-position-bar {
+    @apply mt-3 flex gap-1 text-[8px] font-bold tracking-widest;
+  }
+  .hero-position-bar > div:first-child {
+    @apply w-1/3 rounded-l-md bg-rose-500/15 px-3 py-3 text-rose-700 dark:text-rose-300;
+  }
+  .hero-position-bar > div:last-child {
+    @apply flex flex-1 items-center justify-end gap-2 rounded-r-md bg-teal-500/15 px-3 py-3 text-teal-700 dark:text-teal-300;
+  }
+  .hero-target-preview {
+    @apply mt-5 flex flex-wrap gap-1 border-t border-slate-200 pt-4 dark:border-white/10;
+  }
+  .hero-target-preview span {
+    @apply rounded-md px-2 py-1.5 font-mono text-[9px] text-slate-500 dark:text-slate-400;
+  }
+  .hero-target-preview .active {
+    @apply bg-teal-500/10 text-teal-700 dark:text-teal-300;
+  }
+  .market-strip {
+    @apply relative border-t border-slate-200 py-4 dark:border-white/10;
+  }
+  .market-strip small {
+    @apply ml-1 text-[10px] font-normal text-slate-500 dark:text-slate-400;
+  }
+  .workspace-toolbar {
+    @apply rounded-2xl border border-slate-200 bg-white px-5 py-5 dark:border-white/10 dark:bg-slate-900/50 sm:px-6;
+  }
+  .tool-mode {
+    @apply rounded-xl border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-950;
+  }
+  .feature-icon {
+    @apply grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-teal-500/15 bg-teal-500/5 text-teal-700 dark:text-teal-300;
+  }
+  .terminal-badge {
+    @apply inline-flex rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-mono text-[9px] font-medium tracking-wider text-slate-500 dark:border-slate-700 dark:bg-slate-950/50 dark:text-slate-400;
+  }
+  .mode-switch {
+    @apply grid grid-cols-2 gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-950/50;
+  }
+  .mode-switch button {
+    @apply h-8 rounded-lg text-[11px] font-semibold text-slate-500 transition dark:text-slate-400;
+  }
+  .mode-switch .mode-active {
+    @apply bg-white text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white;
+  }
+  .input[readonly] {
+    @apply border-teal-500/20 bg-teal-500/5 text-teal-800 dark:text-teal-200;
+  }
+  .target-panel {
+    @apply p-5 sm:p-6;
+  }
+  .target-panel-heading {
+    @apply flex flex-wrap items-center justify-between gap-3;
+  }
+  .target-grid {
+    @apply grid grid-cols-2 gap-2.5 sm:grid-cols-3;
+  }
+  .target-card {
+    @apply relative min-w-0 rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 text-left transition duration-200 hover:border-teal-500/60 hover:bg-teal-500/5 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950/30;
+  }
+  .target-card-active {
+    @apply border-teal-500 bg-teal-500/5 ring-1 ring-teal-500 dark:border-teal-400 dark:bg-teal-400/[0.07] dark:ring-teal-400;
+  }
+  .target-ratio {
+    @apply rounded-md bg-slate-200/60 px-2 py-1 font-mono text-xs font-semibold dark:bg-slate-800;
+  }
+  .target-card-active .target-ratio {
+    @apply bg-teal-600 text-white dark:bg-teal-300 dark:text-slate-950;
+  }
+  .target-card-active > span:first-child {
+    @apply text-teal-700 dark:text-teal-300;
+  }
+  .target-price {
+    @apply mt-1 block break-all font-mono text-sm font-semibold tracking-tight sm:text-base;
+  }
+  .target-profit {
+    @apply mt-2.5 block break-all font-mono text-xs font-semibold text-teal-700 dark:text-teal-300;
+  }
+  .trade-map {
+    @apply rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900;
+  }
+  .section-heading-row {
+    @apply flex flex-col justify-between gap-5 lg:flex-row lg:items-end;
+  }
+  .method-section {
+    @apply border-y border-slate-200 bg-white/40 dark:border-white/10 dark:bg-slate-900/20;
+  }
+  .method-grid {
+    @apply mt-9 grid gap-4 lg:grid-cols-3;
+  }
+  .method-card {
+    @apply rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900/40;
+  }
+  .learning-list {
+    @apply overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/40;
+  }
+  .learning-item + .learning-item {
+    @apply border-t border-slate-200 dark:border-white/10;
+  }
+  .learning-item summary {
+    @apply flex cursor-pointer list-none items-center gap-4 p-5 sm:p-6;
+  }
+  .learning-item[open] summary > svg {
+    transform: rotate(180deg);
+  }
+  .closing-banner {
+    @apply mt-14 flex flex-col items-start justify-between gap-6 rounded-2xl border border-teal-500/20 bg-teal-500/5 p-6 sm:p-9 lg:flex-row lg:items-center;
+  }
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Plus Jakarta Sans", "DM Sans", sans-serif;
+}
+.font-mono {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+:root.dark .app-shell {
+  background-color: #090e14;
+}
+:root.dark .app-header {
+  background-color: rgb(9 14 20 / 0.92);
+}
+:root.dark .panel,
+:root.dark .trade-map {
+  background-color: #101822;
+  border-color: #26313e;
+}
+:root.dark .input {
+  background-color: #0b121b;
+  border-color: #2a3645;
+}
+:root.dark .input:focus {
+  border-color: #5eead4;
+}
+.cfd-parameters {
+  border-top: 2px solid #14b8a6;
+}
+.cfd-table tbody tr {
+  transition: background-color 150ms;
+}
+.cfd-table tbody tr:hover {
+  background-color: rgb(20 184 166 / 0.04);
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+@media (max-width: 640px) {
+  .hero-terminal {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #14b8a6;
+  outline-offset: 4px;
 }
 
 @layer utilities {

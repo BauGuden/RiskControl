@@ -1,32 +1,44 @@
 import { CalculatorForm } from "../calculator/CalculatorForm";
 import { TradeChat } from "../chat/TradeChat";
-import { PageHeader } from "../layout/PageHeader";
 import type { CalculatorFormState } from "../../features/calculator/formState";
 import type { ValidationError } from "../../types";
 
 type TradingWorkspaceProps = {
   form: CalculatorFormState;
   errors: ValidationError[];
-  onUpdate: <K extends keyof CalculatorFormState>(key: K, value: CalculatorFormState[K]) => void;
+  onUpdate: <K extends keyof CalculatorFormState>(
+    key: K,
+    value: CalculatorFormState[K],
+  ) => void;
   onCalculate: () => void;
   onClear: () => void;
 };
 
-export function TradingWorkspace({ form, errors, onUpdate, onCalculate, onClear }: TradingWorkspaceProps) {
+export function TradingWorkspace({
+  form,
+  errors,
+  onUpdate,
+  onCalculate,
+  onClear,
+}: TradingWorkspaceProps) {
   return (
-    <section className="scroll-mt-20 py-20 sm:py-24" id="herramienta">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto mb-10 max-w-3xl text-center">
-          <p className="section-kicker">Herramienta operativa</p>
-          <h2 className="section-title">Convierte tu riesgo en números concretos</h2>
-          <p className="section-copy">
-            Completa el formulario o conversa con Gemini. El resultado siempre se calcula localmente con fórmulas deterministas.
-          </p>
+    <section aria-label="Calculadora cripto">
+      <div>
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="section-kicker">SPOT / FUTURES</p>
+            <h2 className="mt-2 text-2xl font-extrabold tracking-tight">
+              Tu riesgo, antes de entrar.
+            </h2>
+            <p className="mt-2 text-sm muted">
+              Tamaño, comisiones y objetivos para tus operaciones cripto.
+            </p>
+          </div>
+          <span className="terminal-badge">ASISTENTE GEMINI</span>
         </div>
 
         <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_390px]">
           <div className="min-w-0 space-y-5">
-            <PageHeader />
             <CalculatorForm
               errors={errors}
               form={form}

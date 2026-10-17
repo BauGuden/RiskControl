@@ -1,15 +1,33 @@
 import { Bot, Check, Copy, Send, UserRound } from "lucide-react";
-import { useState, type FormEvent, type KeyboardEvent } from "react";
-import { getDefaultFeePct, getFeeProfileLabel, resolveFeeProfile } from "../../data/fees";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
+import {
+  getDefaultFeePct,
+  getFeeProfileLabel,
+  resolveFeeProfile,
+} from "../../data/fees";
 import type { CalculatorFormState } from "../../features/calculator/formState";
 import { toCalculatorInput } from "../../features/calculator/formState";
 import { resultToText } from "../../features/calculator/resultText";
-import { extractLeverage, isMarginQuestion } from "../../features/chat/chatFollowUp";
-import { askGemini, type GeminiChatContext } from "../../features/chat/geminiTradeInterpreter";
+import {
+  extractLeverage,
+  isConceptQuestion,
+  isMarginQuestion,
+  localCryptoAnswer,
+} from "../../features/chat/chatFollowUp";
+import {
+  askGemini,
+  type GeminiChatContext,
+} from "../../features/chat/geminiTradeInterpreter";
 import {
   localTradeInterpreter,
   type TradeIntent,
-  type TradeInterpreter
+  type TradeInterpreter,
 } from "../../features/chat/tradeInterpreter";
 import { calculateRisk } from "../../lib/calculateRisk";
 import { formatCurrency, formatNumber } from "../../lib/format";
@@ -32,26 +50,41 @@ const INITIAL_MESSAGES: ChatMessage[] = [
   {
     id: 1,
     role: "assistant",
-    text: `Indícame activo, riesgo, entrada y stop. Por ejemplo:\n${EXAMPLE}`
-  }
+    text: `Indícame activo, riesgo, entrada y stop. Por ejemplo:\n${EXAMPLE}`,
+  },
 ];
 
-export function TradeChat({ form, interpreter = localTradeInterpreter }: TradeChatProps) {
+export function TradeChat({
+  form,
+  interpreter = localTradeInterpreter,
+}: TradeChatProps) {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [isThinking, setIsThinking] = useState(false);
   const [lastResult, setLastResult] = useState<CalculatorResult | null>(null);
   const [lastIntent, setLastIntent] = useState<TradeIntent | null>(null);
-  const [pendingTradeMessages, setPendingTradeMessages] = useState<string[]>([]);
-  const [aiStatus, setAiStatus] = useState<"pending" | "connected" | "local">("pending");
+  const [lastLeverage, setLastLeverage] = useState<number | null>(null);
+  const [pendingTradeMessages, setPendingTradeMessages] = useState<string[]>(
+    [],
+  );
+  const [aiStatus, setAiStatus] = useState<"pending" | "connected" | "local">(
+    "pending",
+  );
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
+  const logRef = useRef<HTMLDivElement>(null);
+  const messageCounter = useRef(1);
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [messages, isThinking]);
 
   async function copyMessage(message: ChatMessage) {
     try {
       await navigator.clipboard.writeText(message.text);
       setCopiedMessageId(message.id);
       window.setTimeout(() => {
-        setCopiedMessageId((current) => (current === message.id ? null : current));
+        setCopiedMessageId((current) =>
+          current === message.id ? null : current,
+        );
       }, 1500);
     } catch {
       setCopiedMessageId(null);
@@ -63,9 +96,9 @@ export function TradeChat({ form, interpreter = localTradeInterpreter }: TradeCh
     if (!message || isThinking) return;
 
     const userMessage: ChatMessage = {
-      id: Date.now(),
+      id: ++messageCounter.current,
       role: "user",
-      text: message
+      text: message,
     };
 
     setMessages((current) => [...current, userMessage]);
@@ -74,22 +107,28 @@ export function TradeChat({ form, interpreter = localTradeInterpreter }: TradeCh
     const requestedLeverage = extractLeverage(message);
     const followUpLeverage =
       requestedLeverage ??
-      (isMarginQuestion(message) ? 25 : null);
+      (isMarginQuestion(message)
+        ? (lastLeverage ?? (Number(form.leverage) || 25))
+        : null);
 
-    if (lastResult && followUpLeverage) {
+    if (
+      lastResult &&
+      followUpLeverage &&
+      !/(?:entrada|entry|\bstop\b|\bsl\b|riesgo|arriesg)/i.test(message)
+    ) {
       const margin = lastResult.notionalEntry / followUpLeverage;
 
       setMessages((current) => [
         ...current,
         {
-          id: Date.now() + 1,
+          id: ++messageCounter.current,
           role: "assistant",
           text: `Margen estimado con ${formatNumber(followUpLeverage)}x
 
 ${formatCurrency(lastResult.notionalEntry)} / ${formatNumber(followUpLeverage)} = ${formatCurrency(margin)}
 
-El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsset}. El apalancamiento cambia el margen requerido, no el tamaño calculado por riesgo.`
-        }
+El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsset}. El apalancamiento cambia el margen requerido, no el tamaño calculado por riesgo.`,
+        },
       ]);
       return;
     }
@@ -107,7 +146,8 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
               market: lastResult.market,
               feeProfile: lastIntent.feeProfile ?? form.feeProfile,
               feeInPct: (lastResult.feeOpen / lastResult.notionalEntry) * 100,
-              feeOutPct: (lastResult.feeCloseAtStop / lastResult.notionalStop) * 100,
+              feeOutPct:
+                (lastResult.feeCloseAtStop / lastResult.notionalStop) * 100,
               side: lastResult.side,
               risk: lastIntent.risk,
               entry: lastIntent.entry,
@@ -115,7 +155,7 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
               sizeUnits: lastResult.sizeUnits,
               baseAsset: lastResult.baseAsset,
               notionalEntry: lastResult.notionalEntry,
-              totalLossAtStop: lastResult.totalLossAtStop
+              totalLossAtStop: lastResult.totalLossAtStop,
             }
           : undefined;
 
@@ -123,19 +163,20 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
         const aiResponse = await askGemini(
           message,
           context,
-          pendingTradeMessages.map((text) => ({ role: "user", text }))
+          pendingTradeMessages.map((text) => ({ role: "user", text })),
         );
         setAiStatus("connected");
 
         if (aiResponse.kind === "answer") {
-          setPendingTradeMessages(pendingMessages);
+          if (!isConceptQuestion(message))
+            setPendingTradeMessages(pendingMessages);
           setMessages((current) => [
             ...current,
             {
-              id: Date.now() + 1,
+              id: ++messageCounter.current,
               role: "assistant",
-              text: aiResponse.answer
-            }
+              text: aiResponse.answer,
+            },
           ]);
           return;
         }
@@ -143,16 +184,39 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
         intent = aiResponse.intent;
       } catch {
         setAiStatus("local");
-        const localMessage = [message, ...pendingTradeMessages.slice().reverse()].join("\n");
+        const localAnswer = localCryptoAnswer(message);
+        if (localAnswer) {
+          setMessages((current) => [
+            ...current,
+            {
+              id: ++messageCounter.current,
+              role: "assistant",
+              text: localAnswer,
+            },
+          ]);
+          return;
+        }
+        const localMessage = [
+          message,
+          ...pendingTradeMessages.slice().reverse(),
+        ].join("\n");
         intent = await interpreter.interpret(localMessage);
       }
 
-      const chatLeverage = requestedLeverage ?? 25;
+      const chatLeverage = requestedLeverage ?? (Number(form.leverage) || 25);
       const tradeBroker = intent.broker ?? form.broker;
       const tradeMarket = intent.market ?? form.market;
-      const requestedFeeProfile = intent.feeProfile ?? (intent.broker || intent.market ? "standard" : form.feeProfile);
-      const feeProfile = resolveFeeProfile(tradeBroker, tradeMarket, requestedFeeProfile);
-      const useBrokerDefaults = Boolean(intent.broker || intent.market || intent.feeProfile);
+      const requestedFeeProfile =
+        intent.feeProfile ??
+        (intent.broker || intent.market ? "standard" : form.feeProfile);
+      const feeProfile = resolveFeeProfile(
+        tradeBroker,
+        tradeMarket,
+        requestedFeeProfile,
+      );
+      const useBrokerDefaults = Boolean(
+        intent.broker || intent.market || intent.feeProfile,
+      );
       const calculationForm: CalculatorFormState = {
         ...form,
         symbol: intent.symbol,
@@ -163,40 +227,58 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
         entry: String(intent.entry),
         stop: String(intent.stop),
         feeInPct: useBrokerDefaults
-          ? String(getDefaultFeePct(tradeBroker, tradeMarket, form.entryRole, feeProfile))
+          ? String(
+              getDefaultFeePct(
+                tradeBroker,
+                tradeMarket,
+                form.entryRole,
+                feeProfile,
+              ),
+            )
           : form.feeInPct,
         feeOutPct: useBrokerDefaults
-          ? String(getDefaultFeePct(tradeBroker, tradeMarket, form.exitRole, feeProfile))
+          ? String(
+              getDefaultFeePct(
+                tradeBroker,
+                tradeMarket,
+                form.exitRole,
+                feeProfile,
+              ),
+            )
           : form.feeOutPct,
-        leverage: String(chatLeverage)
+        leverage: String(chatLeverage),
       };
       const result = calculateRisk(toCalculatorInput(calculationForm));
 
       setLastResult(result);
+      setLastLeverage(chatLeverage);
       setLastIntent({ ...intent, feeProfile });
       setPendingTradeMessages([]);
       setMessages((current) => [
         ...current,
         {
-          id: Date.now() + 1,
+          id: ++messageCounter.current,
           role: "assistant",
           text: `Perfil de fees: ${getFeeProfileLabel(feeProfile)}\n\n${resultToText(
             result,
             calculationForm.feeInPct,
             calculationForm.feeOutPct,
-            chatLeverage
-          )}`
-        }
+            chatLeverage,
+          )}`,
+        },
       ]);
     } catch (error) {
       setPendingTradeMessages((current) => [...current, message].slice(-6));
       setMessages((current) => [
         ...current,
         {
-          id: Date.now() + 1,
+          id: ++messageCounter.current,
           role: "assistant",
-          text: error instanceof Error ? error.message : "No pude interpretar el mensaje."
-        }
+          text:
+            error instanceof Error
+              ? error.message
+              : "No pude interpretar el mensaje.",
+        },
       ]);
     } finally {
       setIsThinking(false);
@@ -224,9 +306,12 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-700 dark:text-teal-300">
-            Asistente de size
+            Asistente cripto
           </p>
-          <h2 className="mt-1 text-lg font-extrabold tracking-tight" id="trade-chat-title">
+          <h2
+            className="mt-1 text-lg font-extrabold tracking-tight"
+            id="trade-chat-title"
+          >
             Describe tu operación
           </h2>
         </div>
@@ -241,20 +326,31 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              aiStatus === "connected" ? "bg-teal-500" : aiStatus === "local" ? "bg-amber-500" : "bg-slate-400"
+              aiStatus === "connected"
+                ? "bg-teal-500"
+                : aiStatus === "local"
+                  ? "bg-amber-500"
+                  : "bg-slate-400"
             }`}
           />
-          {aiStatus === "connected" ? "Gemini" : aiStatus === "local" ? "Local" : "Conectando"}
+          {aiStatus === "connected"
+            ? "Gemini"
+            : aiStatus === "local"
+              ? "Local"
+              : "Conectando"}
         </span>
       </div>
 
       <p className="muted mt-2 text-xs leading-5">
-        Describe la entrada y Gemini prepara el cálculo con tus fees.
+        Cripto Spot / Futures: Gemini interpreta y el motor local calcula con
+        tus fees. Para Exness o Vantage usa el asistente de CFDs / MT5.
       </p>
 
       <div
+        ref={logRef}
         className="scrollbar-none mt-4 max-h-96 min-h-56 space-y-3 overflow-y-auto rounded-2xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-100 xl:min-h-0 xl:max-h-none xl:flex-1 dark:bg-slate-950/70 dark:ring-slate-800"
         role="log"
+        aria-label="Conversación cripto"
       >
         {messages.map((message) => {
           const isAssistant = message.role === "assistant";
@@ -291,12 +387,20 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
                       : "text-white/60 hover:bg-white/10 hover:text-white dark:text-slate-700 dark:hover:bg-slate-950/10 dark:hover:text-slate-950"
                   }`}
                   onClick={() => void copyMessage(message)}
-                  title={copiedMessageId === message.id ? "Copiado" : "Copiar mensaje"}
+                  title={
+                    copiedMessageId === message.id
+                      ? "Copiado"
+                      : "Copiar mensaje"
+                  }
                   type="button"
                 >
                   {copiedMessageId === message.id ? (
                     <Check
-                      className={isAssistant ? "h-4 w-4 text-teal-600 dark:text-teal-300" : "h-4 w-4"}
+                      className={
+                        isAssistant
+                          ? "h-4 w-4 text-teal-600 dark:text-teal-300"
+                          : "h-4 w-4"
+                      }
                       aria-hidden="true"
                     />
                   ) : (
@@ -312,7 +416,9 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
             </div>
           );
         })}
-        {isThinking ? <p className="muted-soft text-xs">Interpretando operación...</p> : null}
+        {isThinking ? (
+          <p className="muted-soft text-xs">Interpretando operación...</p>
+        ) : null}
       </div>
 
       <button
@@ -348,7 +454,13 @@ El size continúa en ${formatNumber(lastResult.sizeUnits)} ${lastResult.baseAsse
             <span className="hidden truncate sm:inline" id="trade-chat-help">
               Enter para enviar · Shift + Enter para nueva línea
             </span>
-            <span className={input.length >= 900 ? "font-bold text-amber-600 dark:text-amber-400" : ""}>
+            <span
+              className={
+                input.length >= 900
+                  ? "font-bold text-amber-600 dark:text-amber-400"
+                  : ""
+              }
+            >
               {input.length}/1000
             </span>
           </div>

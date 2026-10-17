@@ -1,52 +1,80 @@
-import { ArrowUpRight } from "lucide-react";
-import { CONTENT_PILLARS } from "../../content/landing";
+import { ArrowRight, BookOpen, ChevronDown } from "lucide-react";
+
+const concepts = [
+  {
+    number: "01",
+    category: "GESTIÓN DE RIESGO",
+    title: "Riesgo, margen y exposición: tres números distintos",
+    text: "El riesgo al SL depende de la distancia al stop y del tamaño de la posición. La exposición es el valor nocional que controlas. El margen es la parte retenida para sostenerla: al cambiar el apalancamiento, cambia ese margen. Con el mismo tamaño y SL, la pérdida estimada se mantiene. El deslizamiento puede aumentar la pérdida real.",
+  },
+  {
+    number: "02",
+    category: "OBJETIVOS CFD",
+    title: "Qué significa realmente un objetivo 1:3",
+    text: "Un ratio riesgo/beneficio 1:3 busca ganar tres veces lo que se arriesga. En la calculadora CFD se usa el riesgo total estimado, incluido el spread. Si el riesgo real después del redondeo es $0.80, el objetivo neto 1:3 es $2.40. Los nueve TP son salidas alternativas para toda la posición; sus ganancias no se suman.",
+  },
+  {
+    number: "03",
+    category: "EJECUCIÓN",
+    title: "El spread también forma parte de tu operación",
+    text: "El spread es la diferencia entre precio de compra y venta. Puedes reservarlo dentro de tu presupuesto de riesgo o sumarlo como un coste adicional. Las comisiones, el funding, el swap y el deslizamiento son conceptos separados. Si tus precios de ejecución ya incluyen el spread, ajusta la estimación para no contarlo dos veces.",
+  },
+];
 
 export function LearningSection() {
   return (
-    <section className="scroll-mt-20 py-20 sm:py-24" id="aprende">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="section-kicker">Contenido que mejora decisiones</p>
-          <h2 className="section-title">Aprende lo que realmente mueve tu resultado</h2>
-          <p className="section-copy">
-            Conceptos prácticos para conectar análisis, ejecución y gestión de capital sin ruido innecesario.
-          </p>
-        </div>
-
-        <div className="mt-10 grid gap-5 lg:grid-cols-3">
-          {CONTENT_PILLARS.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <article className="group flex min-h-72 flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-panel dark:border-white/10 dark:bg-slate-900" key={item.title}>
-                <div className="flex items-center justify-between">
-                  <span className="grid h-11 w-11 place-items-center rounded-2xl bg-teal-50 text-teal-700 dark:bg-teal-400/10 dark:text-teal-300">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <span className="font-mono text-xs font-bold text-slate-300 dark:text-slate-600">0{index + 1}</span>
-                </div>
-                <p className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-teal-700 dark:text-teal-300">{item.category}</p>
-                <h3 className="mt-2 text-xl font-black leading-tight tracking-tight">{item.title}</h3>
-                <p className="mt-3 text-sm font-medium leading-6 text-slate-600 dark:text-slate-400">{item.description}</p>
-                <span className="mt-auto flex items-center gap-1.5 pt-5 text-xs font-black text-slate-400">
-                  Guía en preparación <ArrowUpRight className="h-3.5 w-3.5" />
-                </span>
-              </article>
-            );
-          })}
-        </div>
-
-        <div className="relative mt-20 overflow-hidden rounded-[2rem] bg-gradient-to-br from-teal-600 to-cyan-700 px-6 py-12 text-center text-white sm:px-12 sm:py-16">
-          <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full border-[40px] border-white/5" />
-          <div className="relative mx-auto max-w-3xl">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-teal-100">Antes de tu próxima entrada</p>
-            <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Haz el cálculo. Define el riesgo. Respeta el plan.</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm font-medium leading-6 text-teal-50/90 sm:text-base">
-              El mercado seguirá siendo incierto. Tu exposición no tiene por qué serlo.
+    <section className="scroll-mt-24" id="aprende">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="section-kicker">04 / CONCEPTOS CLAVE</p>
+            <h2 className="section-title text-left">
+              Entiende los números.
+              <br />
+              Decide con contexto.
+            </h2>
+            <p className="mt-4 max-w-sm text-sm leading-7 muted">
+              Una lectura breve para interpretar el resultado de tu próxima
+              operación.
             </p>
-            <a className="mt-7 inline-flex h-12 items-center justify-center rounded-xl bg-white px-6 text-sm font-black text-teal-800 shadow-lg transition hover:-translate-y-0.5 hover:bg-teal-50" href="#herramienta">
-              Abrir calculadora
-            </a>
+            <span className="mt-6 inline-flex items-center gap-2 text-xs font-semibold muted">
+              <BookOpen size={15} /> Conceptos de la calculadora
+            </span>
           </div>
+          <div className="learning-list">
+            {concepts.map((concept) => (
+              <details key={concept.number} className="learning-item">
+                <summary>
+                  <span className="font-mono text-xs muted">
+                    {concept.number}
+                  </span>
+                  <span className="flex-1">
+                    <span className="block text-[9px] font-bold tracking-widest text-teal-700 dark:text-teal-300">
+                      {concept.category}
+                    </span>
+                    <span className="mt-2 block text-base font-bold leading-6 tracking-tight">
+                      {concept.title}
+                    </span>
+                  </span>
+                  <ChevronDown size={17} className="shrink-0 muted" />
+                </summary>
+                <p className="px-5 pb-6 text-sm leading-7 muted sm:pl-16">
+                  {concept.text}
+                </p>
+              </details>
+            ))}
+          </div>
+        </div>
+        <div className="closing-banner">
+          <div>
+            <p className="section-kicker">TU PRÓXIMA OPERACIÓN EMPIEZA AQUÍ</p>
+            <h2 className="mt-3 text-2xl font-extrabold tracking-tight sm:text-4xl">
+              Un plan claro antes del primer clic.
+            </h2>
+          </div>
+          <a className="btn-primary h-12 shrink-0 px-6" href="#herramienta">
+            Calcular mi operación <ArrowRight size={16} />
+          </a>
         </div>
       </div>
     </section>

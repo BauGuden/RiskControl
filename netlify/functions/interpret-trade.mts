@@ -1,4 +1,25 @@
-import { findTradingSymbolInText, normalizeTradingSymbol } from "../../src/data/assetSymbols";
+import {
+  findTradingSymbolInText,
+  normalizeTradingSymbol,
+} from "../../src/data/assetSymbols";
+import {
+  findCfdInstrument,
+  isCfdFollowUp,
+  normalizeCfdChatPatch,
+} from "../../src/features/cfd/cfdChat";
+
+const CFD_SYSTEM_INSTRUCTION = `Eres el asistente CFD / MT5 de RiskControl para Exness y Vantage. Responde en español.
+Clasifica como cfd-trade solo las operaciones y modificaciones explícitas; como answer las preguntas y datos incompletos.
+Instrumentos admitidos: XAUUSD, BTCUSD, EURUSD, GBPUSD, USDJPY, USTEC (NAS100), US30, US500, GBPJPY, XAGUSD, USOIL, ETHUSD, USDCAD, AUDUSD y EURJPY. Reconoce sus nombres habituales y el sufijo c para Cent. Para GBPJPY/EURJPY pide usdJpy de referencia: no inventes una tasa de cambio.
+No normalices CFDs a USDT. broker: Exness o Vantage. account: auto, standard o cent. USC son centavos; convierte riesgo USC a USD dividiendo entre 100.
+Campos de cfd-trade: instrument, risk (USD), entry, stop, tp (precio o null), direction (long/short), broker, account, leverage (2,20,50,100,200,400,500,600,800,1000,2000 o unlimited), spread (distancia de precio), includeSpread, usdJpy (referencia USDJPY solo para GBPJPY/EURJPY), targetRatio (entero 2 a 10), tpMode (auto/manual).
+Extrae solo valores indicados; omite campos opcionales no indicados. No inventes precios, spreads, riesgo, lotes, margen ni ganancias. El motor local calcula los resultados.
+TP 1:3 / RR 1:3 significa targetRatio 3, tpMode auto. TP 4150 significa tp 4150, tpMode manual. No confundas ratios de TP con apalancamiento.
+Para una operación nueva exige activo, riesgo, entrada y SL. Combina mensajes pendientes sin usar precios de la última operación como datos nuevos.
+Solo usa el contexto de la última operación para modificaciones explícitas (cambia, ajusta, mismo, y con) o para preguntas. No inventes un activo faltante para una operación nueva.
+Si falta un dato, devuelve answer pidiendo únicamente ese dato. No solicites broker, cuenta ni leverage si los cuatro datos principales están completos.
+Puedes explicar Standard/Cent, USD/USC, margen, spread y TP netos usando los valores del contexto. No recomiendes operaciones. Los límites y disponibilidad de instrumentos se verifican en el motor local y dependen del perfil/servidor.
+Devuelve exclusivamente JSON: {"kind":"cfd-trade","instrument":"XAUUSD","risk":1,"entry":4100,"stop":4080,"targetRatio":3,"tpMode":"auto","broker":"Exness","account":"cent"} o {"kind":"answer","answer":"Respuesta breve"}.`;
 
 const SYSTEM_INSTRUCTION = `
 Eres el asistente conversacional de DGBM Risk Control, impulsado por Gemini de Google.
@@ -49,8 +70,8 @@ function json(body: unknown, status = 200) {
   return Response.json(body, {
     status,
     headers: {
-      "Cache-Control": "no-store"
-    }
+      "Cache-Control": "no-store",
+    },
   });
 }
 
@@ -60,13 +81,17 @@ function normalizeSymbol(value: unknown): string | null {
 }
 
 function positiveNumber(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : null;
 }
 
 function normalizeBroker(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const broker = value.trim().toUpperCase();
-  return ["BINANCE", "BYBIT", "MEXC", "BITGET", "BITUNIX"].includes(broker) ? broker : null;
+  return ["BINANCE", "BYBIT", "MEXC", "BITGET", "BITUNIX"].includes(broker)
+    ? broker
+    : null;
 }
 
 function normalizeMarket(value: unknown): string | null {
@@ -78,7 +103,15 @@ function normalizeMarket(value: unknown): string | null {
 function normalizeFeeProfile(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const profile = value.trim().toLowerCase();
-  return ["standard", "bnb", "bgb", "zero-fee", "mexc-btc", "mexc-eth", "api"].includes(profile)
+  return [
+    "standard",
+    "bnb",
+    "bgb",
+    "zero-fee",
+    "mexc-btc",
+    "mexc-eth",
+    "api",
+  ].includes(profile)
     ? profile
     : null;
 }
@@ -94,7 +127,9 @@ function looksLikeOperation(message: string): boolean {
 function hasExplicitAsset(message: string): boolean {
   if (findTradingSymbolInText(message)) return true;
 
-  return /\b(?:ACTIVO|PAR|MONEDA|TICKER)\s*[:=-]?\s*[A-Z0-9]{2,16}\b/i.test(message);
+  return /\b(?:ACTIVO|PAR|MONEDA|TICKER)\s*[:=-]?\s*[A-Z0-9]{2,16}\b/i.test(
+    message,
+  );
 }
 
 function symbolWasProvided(message: string, symbol: string): boolean {
@@ -110,7 +145,9 @@ function symbolWasProvided(message: string, symbol: string): boolean {
 
   const normalizedMessage = message.toUpperCase();
   const escapedAsset = baseAsset.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`\\b${escapedAsset}(?:\\s*[/_-]?\\s*(?:USDT|USDC|USD))?\\b`).test(normalizedMessage);
+  return new RegExp(
+    `\\b${escapedAsset}(?:\\s*[/_-]?\\s*(?:USDT|USDC|USD))?\\b`,
+  ).test(normalizedMessage);
 }
 
 function getOutputText(response: GeminiGenerateContent): string | null {
@@ -135,25 +172,28 @@ export default async (request: Request) => {
   let message: unknown;
   let context: unknown;
   let history: unknown;
+  let mode: unknown;
 
   try {
-    const body = (await request.json()) as { message?: unknown; context?: unknown; history?: unknown };
+    const body = (await request.json()) as {
+      message?: unknown;
+      context?: unknown;
+      history?: unknown;
+      mode?: unknown;
+    };
     message = body.message;
     context = body.context;
     history = body.history;
+    mode = body.mode;
   } catch {
     return json({ error: "El cuerpo de la solicitud no es válido." }, 400);
   }
 
   if (typeof message !== "string" || !message.trim() || message.length > 1000) {
-    return json({ error: "El mensaje debe contener entre 1 y 1000 caracteres." }, 400);
-  }
-
-  if (looksLikeOperation(message) && !hasExplicitAsset(message)) {
-    return json({
-      kind: "answer",
-      answer: "Me falta el activo o par. Ejemplo: ADA, BTCUSDT o ETH/USDT."
-    });
+    return json(
+      { error: "El mensaje debe contener entre 1 y 1000 caracteres." },
+      400,
+    );
   }
 
   const safeHistory = Array.isArray(history)
@@ -162,29 +202,56 @@ export default async (request: Request) => {
           (item): item is { role: "user" | "assistant"; text: string } =>
             Boolean(item) &&
             typeof item === "object" &&
-            ((item as { role?: unknown }).role === "user" || (item as { role?: unknown }).role === "assistant") &&
-            typeof (item as { text?: unknown }).text === "string"
+            ((item as { role?: unknown }).role === "user" ||
+              (item as { role?: unknown }).role === "assistant") &&
+            typeof (item as { text?: unknown }).text === "string",
         )
         .slice(-6)
         .map((item) => ({
           role: item.role,
-          text: item.text.trim().slice(0, 1000)
+          text: item.text.trim().slice(0, 1000),
         }))
         .filter((item) => item.text)
     : [];
 
+  const cfdMode = mode === "cfd";
+  const operationText = [
+    ...safeHistory
+      .filter((item) => item.role === "user")
+      .map((item) => item.text),
+    message,
+  ].join("\n");
+  if (
+    !cfdMode &&
+    looksLikeOperation(message) &&
+    !hasExplicitAsset(operationText)
+  ) {
+    return json({
+      kind: "answer",
+      answer: "Me falta el activo o par. Ejemplo: ADA, BTCUSDT o ETH/USDT.",
+    });
+  }
+
   const input = [
     safeHistory.length > 0
       ? `Historial pendiente de esta misma operación:\n${safeHistory
-          .map((item) => `${item.role === "user" ? "Usuario" : "Asistente"}: ${item.text}`)
+          .map(
+            (item) =>
+              `${item.role === "user" ? "Usuario" : "Asistente"}: ${item.text}`,
+          )
           .join("\n")}`
       : null,
     `Mensaje actual del usuario:\n${message}`,
-    context ? `Contexto de la última operación ya calculada:\n${JSON.stringify(context)}` : null
+    context
+      ? `Contexto de la última operación ya calculada:\n${JSON.stringify(context)}`
+      : null,
   ]
     .filter(Boolean)
     .join("\n\n");
-  const currentOperationMessages = [...safeHistory.map((item) => item.text), message].join("\n");
+  const currentOperationMessages = [
+    ...safeHistory.map((item) => item.text),
+    message,
+  ].join("\n");
 
   try {
     const model = process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
@@ -194,26 +261,28 @@ export default async (request: Request) => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-goog-api-key": apiKey
+          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
           system_instruction: {
-            parts: [{ text: SYSTEM_INSTRUCTION }]
+            parts: [
+              { text: cfdMode ? CFD_SYSTEM_INSTRUCTION : SYSTEM_INSTRUCTION },
+            ],
           },
           contents: [
             {
               role: "user",
-              parts: [{ text: input }]
-            }
+              parts: [{ text: input }],
+            },
           ],
           generationConfig: {
             temperature: 0,
             maxOutputTokens: 300,
-            responseMimeType: "application/json"
-          }
+            responseMimeType: "application/json",
+          },
         }),
-        signal: AbortSignal.timeout(12_000)
-      }
+        signal: AbortSignal.timeout(12_000),
+      },
     );
 
     if (!response.ok) {
@@ -225,16 +294,42 @@ export default async (request: Request) => {
     const outputText = getOutputText(generated);
 
     if (!outputText) {
-      return json({ error: "Gemini no devolvió una respuesta interpretable." }, 502);
+      return json(
+        { error: "Gemini no devolvió una respuesta interpretable." },
+        502,
+      );
     }
 
     const extracted = JSON.parse(outputText) as Record<string, unknown>;
 
     if (extracted.kind === "answer") {
-      const answer = typeof extracted.answer === "string" ? extracted.answer.trim() : "";
+      const answer =
+        typeof extracted.answer === "string" ? extracted.answer.trim() : "";
       return answer
         ? json({ kind: "answer", answer })
         : json({ error: "Gemini no devolvió una respuesta válida." }, 502);
+    }
+
+    if (cfdMode) {
+      if (extracted.kind !== "cfd-trade")
+        return json(
+          { error: "Gemini devolvió un tipo de respuesta CFD inválido." },
+          502,
+        );
+      const patch = normalizeCfdChatPatch(extracted);
+      const explicitInstrument = findCfdInstrument(operationText);
+      if (
+        patch.instrument &&
+        patch.instrument !== explicitInstrument &&
+        !isCfdFollowUp(message)
+      ) {
+        return json({
+          kind: "answer",
+          answer:
+            "Me falta el activo CFD. Indica uno de los 15 simbolos disponibles en el selector CFD.",
+        });
+      }
+      return json({ kind: "cfd-trade", ...patch });
     }
 
     const intent = {
@@ -244,20 +339,28 @@ export default async (request: Request) => {
       stop: positiveNumber(extracted.stop),
       broker: normalizeBroker(extracted.broker),
       market: normalizeMarket(extracted.market),
-      feeProfile: normalizeFeeProfile(extracted.feeProfile)
+      feeProfile: normalizeFeeProfile(extracted.feeProfile),
     };
 
-    if (intent.symbol && !symbolWasProvided(currentOperationMessages, intent.symbol)) {
+    if (
+      intent.symbol &&
+      !symbolWasProvided(currentOperationMessages, intent.symbol)
+    ) {
       return json({
         kind: "answer",
-        answer: "Me falta el activo o par. Ejemplo: ADA, BTCUSDT o ETH/USDT."
+        answer: "Me falta el activo o par. Ejemplo: ADA, BTCUSDT o ETH/USDT.",
       });
     }
 
-    const missing = (["symbol", "risk", "entry", "stop"] as const).filter((field) => intent[field] === null);
+    const missing = (["symbol", "risk", "entry", "stop"] as const).filter(
+      (field) => intent[field] === null,
+    );
 
     if (missing.length > 0) {
-      return json({ error: "Faltan datos para calcular la operación.", missing }, 422);
+      return json(
+        { error: "Faltan datos para calcular la operación.", missing },
+        422,
+      );
     }
 
     return json({ kind: "trade", ...intent });
@@ -268,5 +371,5 @@ export default async (request: Request) => {
 };
 
 export const config = {
-  path: "/api/interpret-trade"
+  path: "/api/interpret-trade",
 };
